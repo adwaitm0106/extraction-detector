@@ -1,0 +1,14 @@
+# Data / logs
+data/logs/*.jsonl
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Secrets & local config
+.env
+thresholds.json
+
+# Generated figures
+eval/figures/*.png
