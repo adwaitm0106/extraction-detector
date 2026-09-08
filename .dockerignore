@@ -1,0 +1,9 @@
+.git
+.venv
+__pycache__
+*.pyc
+data/logs/*.jsonl
+eval/figures/*.png
+scripts
+.env
+thresholds.json
