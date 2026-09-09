@@ -107,9 +107,14 @@ async def predict(request: Request):
 
 
 def _infer(text: str):
-    """Run the model under a lock; the HF pipeline is not thread-safe."""
+    """Run the model under a lock; the HF pipeline is not thread-safe.
+
+    truncation is required: DistilBERT accepts 512 tokens, and a 2000-character
+    input can exceed that. Without it the pipeline raises and a legal request
+    would surface as a 500.
+    """
     with _MODEL_LOCK:
-        return _MODEL(text)
+        return _MODEL(text, truncation=True, max_length=512)
 
 
 async def _read_body(request: Request):
