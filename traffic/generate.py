@@ -68,10 +68,19 @@ def send(base, api_key, text, timeout=30):
 # --- A single client: one API key, one query generator, one pacing policy. ---
 class Client:
     def __init__(self, base, api_key, profile, seed, rate, n=None,
-                 duration=None, burst=False):
+                 duration=None, burst=False, jitter=0.0, pacing="constant"):
         self.base, self.api_key, self.profile = base, api_key, profile
         self.rng = random.Random(seed)
         self.rate, self.n, self.duration, self.burst = rate, n, duration, burst
+        # Fractional timing jitter. A patient attacker randomises inter-arrival
+        # times to look less like a machine, so the detector must not depend on
+        # metronome-regular timing.
+        self.jitter = jitter
+        # "poisson" draws each gap from an exponential distribution, which is
+        # what memoryless arrivals look like. This is the strongest evasion of
+        # timing-based detection available to an attacker who is willing to be
+        # slow, so the detector must be tested against it.
+        self.pacing = pacing
         self.codes = Counter()
         self.sent = 0
         self._i = 0
@@ -115,7 +124,13 @@ class Client:
             self._i += 1
 
             if interval:
-                next_at += interval
+                if self.pacing == "poisson":
+                    step = self.rng.expovariate(1.0 / interval)
+                else:
+                    step = interval
+                    if self.jitter:
+                        step *= 1.0 + self.rng.uniform(-self.jitter, self.jitter)
+                next_at += step
                 delay = next_at - time.time()
                 if delay > 0:
                     time.sleep(delay)
@@ -129,22 +144,26 @@ def build_clients(args):
         clients = [
             Client(args.base_url, "user-%02d" % i, "benign", args.seed + i,
                    rate=args.rate or 1.0, duration=args.duration, n=args.n,
-                   burst=True)
+                   burst=True, jitter=args.jitter, pacing=args.pacing)
             for i in range(args.benign_clients)
         ]
         clients.append(
             Client(args.base_url, args.attacker_key, args.attacker_profile,
                    args.seed + 999, rate=args.attacker_rate,
-                   duration=args.duration, n=args.attacker_n or args.n)
+                   duration=args.duration, n=args.attacker_n or args.n,
+                   jitter=args.attacker_jitter, pacing=args.attacker_pacing)
         )
         return clients
 
     default_key = args.attacker_key if args.profile in ATTACK_PROFILES else "user-00"
     key = args.api_key or default_key
     default_rate = 1.0 if args.profile == "benign" else 20.0
+    is_attack = args.profile in ATTACK_PROFILES
     return [Client(args.base_url, key, args.profile, args.seed,
                    rate=args.rate or default_rate, n=args.n,
-                   duration=args.duration, burst=args.profile == "benign")]
+                   duration=args.duration, burst=args.profile == "benign",
+                   jitter=args.attacker_jitter if is_attack else args.jitter,
+                   pacing=args.attacker_pacing if is_attack else args.pacing)]
 
 
 def main():
@@ -161,6 +180,17 @@ def main():
     p.add_argument("--duration", type=float, help="seconds to run instead of --n")
     p.add_argument("--rate", type=float, help="requests/sec per benign client")
     p.add_argument("--attacker-rate", type=float, default=20.0)
+    p.add_argument("--jitter", type=float, default=0.0,
+                   help="fractional timing jitter for benign clients")
+    p.add_argument("--attacker-jitter", type=float, default=0.0,
+                   help="fractional timing jitter for the attacker; a patient "
+                        "attacker uses this to defeat regularity detection")
+    p.add_argument("--pacing", default="constant", choices=["constant", "poisson"],
+                   help="inter-arrival model for benign clients")
+    p.add_argument("--attacker-pacing", default="constant",
+                   choices=["constant", "poisson"],
+                   help="inter-arrival model for the attacker; poisson defeats "
+                        "regularity-based detection")
     p.add_argument("--attacker-profile", default="boundary",
                    choices=list(ATTACK_PROFILES))
     p.add_argument("--attacker-key", default="attacker-01")
