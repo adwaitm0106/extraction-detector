@@ -95,3 +95,29 @@ def sweep_query(index: int) -> str:
     a = OOD_VOCAB[index % len(OOD_VOCAB)]
     b = SUBJECTS[(index // len(OOD_VOCAB)) % len(SUBJECTS)]
     return f"{b} was very {a}"
+
+
+def natural_query(index: int) -> str:
+    """Natural-looking text, enumerated systematically.
+
+    The hardest attacker to catch on content alone: every query is a
+    well-formed opinion sentence drawn from the same distribution a real user
+    would produce, so nothing about an individual query -- or an individual
+    client's slice of them -- looks unusual. What makes it an attack is the
+    systematic, exhaustive coverage of the input space, which is only visible
+    when the members' traffic is considered together.
+    """
+    # Weighted 11:9 positive:negative rather than an even split. An attacker
+    # who enumerates a grid evenly produces a perfectly balanced label
+    # distribution, which is itself conspicuous -- benign opinion traffic is
+    # skewed. Matching the skew removes that tell.
+    opinions = (OPINIONS_POS * 11 + OPINIONS_NEG * 9)
+    n_op = len(opinions)
+    # Coprime strides so subject, opinion and closer all advance quickly and
+    # independently. A nested-loop enumeration would hold the opinion fixed
+    # for a whole pass over the subjects, which skews a short slice to a
+    # single sentiment and gives the campaign away.
+    subject = SUBJECTS[index % len(SUBJECTS)]
+    opinion = opinions[(index * 7) % n_op]
+    closer = CLOSERS[(index * 3) % len(CLOSERS)]
+    return f"{subject} {opinion}{closer}"

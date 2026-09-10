@@ -105,7 +105,10 @@ powershell -ExecutionPolicy Bypass -File scripts\smoke_test.ps1
         detector/calibrate.py     detector/score.py      detector/dashboard.py
           benign traffic only      z vs baseline           live web view
                     │                      ▲
-                    └──▶ thresholds.json ──┘
+                    └──▶ thresholds.json ──┤
+                                           │
+                                detector/campaign.py
+                             cross-key linkage + pooled score
 ```
 
 **The victim API** loads the model once at startup and holds it in module
@@ -120,10 +123,13 @@ never logged.
 ground-truth label. Profiles: `benign` (natural sentences, bursty human
 pacing, ~20% repeats), `random` (uniform word salad — broad input coverage),
 `boundary` (near-duplicate probes that vary one token to find where the label
-flips), `sweep` (deterministic template enumeration), and `mixed` (benign
-clients plus one attacker, concurrently). Attackers can throttle
-(`--attacker-rate`), jitter (`--attacker-jitter`), or use memoryless Poisson
-arrivals (`--attacker-pacing poisson`) to evade timing detection.
+flips), `sweep` (deterministic template enumeration), `natural`
+(natural-looking sentences enumerated systematically — designed to pass
+per-key content checks), and `mixed` (benign clients plus one attacker,
+concurrently). Attackers can throttle (`--attacker-rate`), jitter
+(`--attacker-jitter`), use memoryless Poisson arrivals
+(`--attacker-pacing poisson`), or split the campaign across K API keys
+(`--split K`) to evade detection.
 
 **The detector** computes ten rate-independent, sample-size-normalised
 features per window of 30 requests:
@@ -136,6 +142,15 @@ features per window of 30 requests:
 | `low_conf_rate`, `conf_p10` | Probing concentrates near the decision boundary |
 | `iat_burstiness` | Humans work in bursts; scripts do not |
 | `label_balance` | Sweeps drift toward the model's prior |
+
+**Cross-key correlation** (`detector/campaign.py`) addresses the attacker who
+splits a campaign across several API keys. It links pairs of keys that are far
+more similar than benign pairs typically are — on shared vocabulary, shared
+structural skeletons, cross-key near-duplicates, and overlapping activity
+windows — then pools each connected component and scores the union. **Both**
+stages must agree before anything is called a campaign: linkage alone would
+flag two colleagues at the same company, and pooled anomaly alone is more
+likely several unrelated oddities than one actor.
 
 **Calibration** fits a robust baseline — median and MAD — on **benign traffic
 only**. Scoring is a two-sided robust z-score per feature; a client is called
@@ -166,6 +181,10 @@ python traffic/generate.py --profile boundary --n 60 --rate 1.0 \
 # 4. Score, and measure
 python detector/score.py    --log data/logs/requests.jsonl
 python eval/evaluate.py     --log data/logs/requests.jsonl --attack-prefix atk-
+
+# 5. Look for campaigns split across multiple keys
+python traffic/generate.py --profile natural --n 150 --split 5   --attacker-rate 1.5 --attacker-pacing poisson --attacker-key ghost --seed 900
+python detector/campaign.py --log data/logs/requests.jsonl
 ```
 
 ### Dashboard
@@ -208,17 +227,50 @@ and the section below explains why.** Ten synthetic clients from a single
 generator is a demonstration that the approach separates these profiles, not
 evidence of a deployable detector.
 
-Two defects found and fixed during evaluation:
+### Cross-key campaigns
 
-- **Degenerate feature scale.** `low_conf_rate` is zero across all benign
-  calibration windows, so its MAD was zero and an arbitrary `1e-3` floor
-  turned a *single* low-confidence request into a 33σ event — a false
-  positive with z-scores up to 266. Fixed by deriving the floor from window
-  size: a proportion over W requests moves in steps of 1/W, so deviations
-  below one step are quantisation noise, not signal.
+A campaign of 150 queries was split five ways — 30 queries per key at roughly
+0.24 req/s each — and run against the same baseline.
+
+| Campaign | Per-key verdict | Linked as one group | Pooled |
+|---|---|---|---|
+| `ghost-*` (template sweep) | 5/5 ATTACK | yes | CAMPAIGN |
+| `stealth-*` (natural text, systematic) | 5/5 ATTACK | yes | CAMPAIGN |
+| `wraith-*` (natural text, hardened) | 5/5 ATTACK | **no** | — |
+
+No benign client was ever pulled into a group.
+
+**This corrected an assumption.** Splitting a campaign across keys was expected
+to be the cheapest evasion available. It is not — at least not against this
+detector, because the features are per-window *shape* measures that do not
+depend on volume. A key sending 30 systematic queries looks as anomalous as one
+sending 3000. Distribution defeats rate-based detection, which this detector
+deliberately does not use.
+
+Cross-key linkage still earns its place, for **attribution**: it reports that
+ten flagged keys are two actors rather than ten independent ones, which is what
+an operator needs in order to respond. But on this evidence it is a second
+layer, not the primary defence.
+
+### Defects found and fixed during evaluation
+
+- **Degenerate feature scale, twice.** `low_conf_rate` and later
+  `label_balance` are zero (or near-constant) across benign calibration
+  windows, so their MAD collapsed and an arbitrary `1e-3` floor turned a
+  single unusual request into a 33σ event — one false positive carried
+  z-scores up to 266. Fixed by deriving the floor from window size: a
+  proportion over W requests moves in steps of 1/W, so deviations below one
+  step are quantisation noise. The second instance was only noticed because an
+  attack was being caught for the *wrong reason* — every member of a campaign
+  showed an identical z of 18.2.
 - **A 500 on legal input.** A 2000-character request can exceed DistilBERT's
   512-token window (`"a " * 1000` is 2000 chars but 1002 tokens), raising a
   tensor size mismatch. Fixed by truncating at the pipeline call.
+- **Sentiment-skewed enumeration.** The first `natural` attack profile
+  advanced its opinion index once per pass over subjects, so any short slice
+  was 100% one sentiment — trivially detectable for a reason that had nothing
+  to do with extraction. Fixed with coprime strides, which made the attacker
+  meaningfully harder and the evaluation honest.
 
 ## Shortcomings
 
@@ -251,10 +303,19 @@ learn their signatures — but it does not eliminate it. An attacker who
 generates queries from real review text at human pace with natural vocabulary
 would defeat most of these features, and has not been tested.
 
-**A key is not an attacker.** Detection is per API key. Distributing an
-extraction campaign across many keys, each sending a modest and innocuous-looking
-slice, defeats per-key analysis entirely. Cross-key correlation is not
-implemented.
+**Cross-key linkage is evadable, and over-merges.** The hardened `wraith`
+campaign was not linked at all: partitioning a grid with coprime strides makes
+members' queries *complementary* rather than overlapping, which is precisely
+what similarity-based linkage looks for. In the other direction, two separate
+campaigns using the same tooling were merged into a single group of ten by
+transitive closure. Linkage answers "same tooling?", not "same actor?", and the
+report should be read that way.
+
+**Detection margins on the hardest attacker are thin.** `wraith` was caught,
+but at 2–4 flags with z-scores of 3.5–5.5, against a 3.5 cutoff. The earlier,
+cruder profiles cleared it by z-scores of 15–50. An attacker drawing from a
+genuinely varied corpus rather than a template grid would likely fall below the
+threshold, and that has not been tested.
 
 **No adaptive attacker.** Everything here is static. An attacker with
 dashboard feedback could tune queries until they stopped being flagged. The

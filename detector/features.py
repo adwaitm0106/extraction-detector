@@ -32,6 +32,11 @@ PROPORTION_FEATURES = frozenset({
     "near_dup_rate",
     "template_share",
     "low_conf_rate",
+    # label_balance is |p - 0.5| for a proportion p, so it inherits the same
+    # 1/W resolution. Without it here, a client with a perfectly even label
+    # split scored an 18-sigma deviation purely because the benign MAD was
+    # tiny -- an artefact, not a signal.
+    "label_balance",
 })
 
 FEATURE_NAMES = (

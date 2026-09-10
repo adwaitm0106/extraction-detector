@@ -126,6 +126,9 @@ def main():
         "n_windows": len(samples),
         "n_clients": len(keys),
         "clients": sorted(keys),
+        # Recorded so campaign.py can reuse the same benign-only traffic for
+        # its pair baseline without being told twice.
+        "source_logs": [os.path.abspath(x) for x in args.log],
         "features": baseline,
     }
     with open(args.out, "w", encoding="utf-8") as fh:

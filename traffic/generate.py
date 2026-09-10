@@ -10,6 +10,9 @@ Profiles
     random      High-rate uniform word salad. Broad input-space coverage.
     boundary    Near-duplicate probes around a few seed sentences.
     sweep       Deterministic enumeration of a template grid.
+    natural     Natural-looking sentences, enumerated systematically. Designed
+                to pass per-key content checks: the attack is visible only in
+                aggregate coverage, not in any single query.
     mixed       Several benign clients plus one attacker, run concurrently --
                 the realistic case, where the attacker must be picked out of
                 normal traffic rather than observed in isolation.
@@ -39,11 +42,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from corpus import (  # noqa: E402
     benign_query,
     boundary_probe_query,
+    natural_query,
     random_ood_query,
     sweep_query,
 )
 
-ATTACK_PROFILES = ("random", "boundary", "sweep")
+ATTACK_PROFILES = ("random", "boundary", "sweep", "natural")
 
 
 # --- One HTTP call. Failures are counted, never raised: a generator that dies
@@ -68,7 +72,8 @@ def send(base, api_key, text, timeout=30):
 # --- A single client: one API key, one query generator, one pacing policy. ---
 class Client:
     def __init__(self, base, api_key, profile, seed, rate, n=None,
-                 duration=None, burst=False, jitter=0.0, pacing="constant"):
+                 duration=None, burst=False, jitter=0.0, pacing="constant",
+                 index_offset=0, index_step=1):
         self.base, self.api_key, self.profile = base, api_key, profile
         self.rng = random.Random(seed)
         self.rate, self.n, self.duration, self.burst = rate, n, duration, burst
@@ -81,6 +86,10 @@ class Client:
         # timing-based detection available to an attacker who is willing to be
         # slow, so the detector must be tested against it.
         self.pacing = pacing
+        # Grid position for a split campaign: member r of K walks the template
+        # grid at offset r, step K, so the members between them cover exactly
+        # the same ground one client would have covered alone.
+        self.index_offset, self.index_step = index_offset, index_step
         self.codes = Counter()
         self.sent = 0
         self._i = 0
@@ -98,7 +107,9 @@ class Client:
         if self.profile == "boundary":
             return boundary_probe_query(self.rng)
         if self.profile == "sweep":
-            return sweep_query(self._i)
+            return sweep_query(self.index_offset + self._i * self.index_step)
+        if self.profile == "natural":
+            return natural_query(self.index_offset + self._i * self.index_step)
         raise ValueError("unknown profile " + self.profile)
 
     def run(self, stop_event):
@@ -138,8 +149,31 @@ class Client:
                     next_at = time.time()  # fell behind; do not build up debt
 
 
+def split_campaign(args):
+    """One attack stream divided across several API keys.
+
+    This is the cheapest evasion of any per-key detector: buy K keys, send
+    each a modest slice at an unremarkable rate. No member looks unusual on
+    its own; the campaign only exists in aggregate.
+    """
+    k = args.split
+    per_rate = (args.attacker_rate or 1.0) / k
+    per_n = None if args.n is None else max(1, args.n // k)
+    return [
+        Client(args.base_url, "%s-%s" % (args.attacker_key, chr(ord("a") + r)),
+               args.profile if args.profile in ATTACK_PROFILES
+               else args.attacker_profile,
+               args.seed + 7000 + r, rate=per_rate, n=per_n,
+               duration=args.duration, jitter=args.attacker_jitter,
+               pacing=args.attacker_pacing, index_offset=r, index_step=k)
+        for r in range(k)
+    ]
+
+
 def build_clients(args):
     """Map a profile name onto the set of clients that profile implies."""
+    if args.split > 1:
+        return split_campaign(args)
     if args.profile == "mixed":
         clients = [
             Client(args.base_url, "user-%02d" % i, "benign", args.seed + i,
@@ -173,7 +207,8 @@ def main():
     )
     p.add_argument("--base-url", default="http://127.0.0.1:8000")
     p.add_argument("--profile", default="benign",
-                   choices=["benign", "random", "boundary", "sweep", "mixed"])
+                   choices=["benign", "random", "boundary", "sweep", "natural",
+                            "mixed"])
     p.add_argument("--n", type=int, help="requests per client")
     p.add_argument("--attacker-n", type=int,
                    help="override --n for the attacker in a mixed run")
@@ -196,6 +231,9 @@ def main():
     p.add_argument("--attacker-key", default="attacker-01")
     p.add_argument("--api-key", help="override the key for single-profile runs")
     p.add_argument("--benign-clients", type=int, default=4)
+    p.add_argument("--split", type=int, default=1,
+                   help="divide the attack across this many API keys; each "
+                        "member sends n/K queries at rate/K")
     p.add_argument("--seed", type=int, default=1)
     args = p.parse_args()
 
