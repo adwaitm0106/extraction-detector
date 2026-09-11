@@ -1,53 +1,82 @@
-# Project
+# Extraction Detector
 
-**Detecting model-extraction attacks from API request logs.**
+**Catching model-extraction attacks in API logs — when the attacker is patient
+enough to look like a customer.**
 
-A model-extraction attack steals a machine learning model by querying it: the
-attacker sends inputs, records the outputs, and trains a copy on the resulting
-pairs. No breach is required — the attack uses the API exactly as intended,
-one legitimate request at a time.
+## The problem, and who has it
 
-This repository is a complete, runnable testbed for detecting that:
+If you sell access to a model, your model is your product, and your API hands
+it out one answer at a time. Model extraction is the attack that exploits
+this: query the model, record the outputs, and train a copy on the pairs. No
+breach, no exploit, no anomaly in your security tooling. The attacker uses the
+product exactly as designed and leaves with a working replica of the asset you
+spent money to build.
 
-| Component | What it is |
-|---|---|
-| `api/` | A **victim** sentiment API (DistilBERT SST-2) that logs every query |
-| `traffic/` | A generator producing labelled **benign and attacker** traffic |
-| `detector/` | Feature extraction, benign-only calibration, and scoring |
-| `eval/` | Confusion matrix over labelled logs |
-| `data/logs/` | Where request logs land (git-ignored) |
+**Who deploys this:** the ML platform or API product team that owns a
+customer-facing inference endpoint — a sentiment, moderation, classification,
+or scoring API sold per call.
 
-The detector deliberately **cannot see query volume**. Rate is the obvious
-extraction signal and the cheapest to evade — an attacker who throttles to
-human pace defeats it at no cost but time. Every feature here is
-rate-independent, so detection has to come from the *shape* of the queries.
+**What it replaces:** per-key rate limits. Rate limiting is what almost
+everyone actually has, and it only stops attackers in a hurry. An attacker
+willing to spend a week at one query per second — indistinguishable from a
+normal customer on volume — walks straight through it. That is not
+hypothetical; it is measured below, and it is the reason this detector
+**refuses to use query volume as a signal at all**.
+
+**What a false positive costs:** a paying customer gets throttled or has their
+key revoked. That is a support ticket, a refund conversation, and possibly a
+churned account. This is why the detector reports *which signals fired with
+what deviation* rather than a bare verdict, and why the flag rule requires two
+independent signals rather than one. A human should be able to look at an
+alert and decide in ten seconds whether it is real.
+
+## Why this approach, now
+
+Extraction stopped being academic once high-quality open models made the
+"student" side cheap: an attacker no longer needs to match your architecture,
+only to harvest enough labelled examples to fine-tune something adequate. A
+few tens of thousands of queries against a well-specified task is enough, and
+at commodity API prices that costs less than a laptop.
+
+Defences that work by making queries expensive — rate limits, quotas, pricing
+— all share the same weakness: they assume the attacker is impatient. The
+alternative is to look at *what is being asked*, not *how much*. Extraction
+traffic has to cover the input space systematically to be useful for training,
+and that systematic coverage leaves statistical traces — in vocabulary, in
+structural repetition, in where queries land relative to the decision
+boundary — that ordinary usage does not produce. Those traces are what this
+detects, and unlike volume they cannot be removed by slowing down.
 
 ## Quickstart
 
-Nothing is required on the host except Docker Desktop (or Docker Engine with
-the Compose plugin). Python, torch and the model weights all live inside the
-image.
+Verified end to end on Windows with Python 3.14 from a clean clone. Takes about
+five minutes, most of it the model download.
 
 ```bash
 git clone https://github.com/adwaitm0106/extraction-detector.git
 cd extraction-detector
-docker compose up --build
+python -m venv .venv
 ```
 
-> **Not yet verified.** The Docker setup has never been built or run — Docker
-> was unavailable on the development machine. The compose file is valid YAML
-> and the Dockerfile is written carefully, but expect it to need a debugging
-> pass on first use. The non-Docker path below *has* been verified end to end
-> from a clean clone.
-
-The first build downloads CPU-only torch wheels and bakes the
-`distilbert-base-uncased-finetuned-sst-2-english` weights into the image, so it
-takes several minutes. Later builds are cached.
-
-The API is ready once `/health` reports `model_loaded: true`:
+Install dependencies (about 250 MB of CPU-only wheels):
 
 ```bash
-curl -s http://127.0.0.1:8000/health
+.venv/Scripts/python.exe -m pip install -r api/requirements.txt
+```
+
+On macOS or Linux use `.venv/bin/python` in place of `.venv/Scripts/python.exe`
+throughout.
+
+Start the API. The first run downloads ~268 MB of model weights:
+
+```bash
+.venv/Scripts/python.exe -m uvicorn api.main:app --port 8000
+```
+
+In a second terminal, confirm it is up — wait for `model_loaded: true`:
+
+```bash
+curl.exe -s http://127.0.0.1:8000/health
 # {"status":"ok","model_loaded":true}
 ```
 
@@ -55,37 +84,109 @@ Send a prediction. `X-API-Key` is required and identifies the caller in the
 logs; any non-empty string works:
 
 ```bash
-curl -s -X POST http://127.0.0.1:8000/predict \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: demo-key-1" \
-  -d '{"input":"This movie was absolutely fantastic."}'
+curl.exe -s -X POST http://127.0.0.1:8000/predict -H "Content-Type: application/json" -H "X-API-Key: demo-key-1" -d "{\"input\":\"This movie was absolutely fantastic.\"}"
 # {"label":"POSITIVE","confidence":0.9998722076416016}
 ```
 
-Every successful request appends one JSON line to `data/logs/requests.jsonl`
-on the host, so the detector can tail it live. Stop with `docker compose down`.
+> **PowerShell note:** `curl` is an alias for `Invoke-WebRequest` and rejects
+> these flags. Use `curl.exe` as shown. In bash, plain `curl` is fine.
 
-**On Windows PowerShell**, `curl` is an alias for `Invoke-WebRequest` and will
-reject the flags above. Use `curl.exe`, or the native form:
-
-```powershell
-Invoke-RestMethod -Uri http://127.0.0.1:8000/predict -Method Post `
-  -Headers @{"X-API-Key"="demo-key-1"} -ContentType "application/json" `
-  -Body '{"input":"This movie was absolutely fantastic."}'
-```
-
-### Without Docker
-
-```bash
-python -m venv .venv
-.venv/Scripts/python.exe -m pip install -r api/requirements.txt      # Windows
-.venv/Scripts/python.exe -m uvicorn api.main:app --port 8000
-```
-
-Verify everything works in one command:
+Every successful request appends one JSON line to `data/logs/requests.jsonl`.
+Verify the whole install in one command:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\smoke_test.ps1
+# All 12 checks passed.
+```
+
+### Optional: Docker
+
+> **Unverified.** This has never been built or run — Docker was unavailable on
+> the development machine. The compose file is valid YAML and the Dockerfile is
+> written carefully, but expect it to need debugging. **Use the venv path above
+> for anything that matters.**
+
+```bash
+docker compose up --build
+```
+
+## Running the demo
+
+With the API running, in a second terminal:
+
+```bash
+# 1. Benign traffic to calibrate against. The detector must NEVER see attack
+#    traffic during calibration. Four clients gives 8 windows; the minimum
+#    is 5, so do not reduce this below three clients.
+for i in 0 1 2 3; do
+  .venv/Scripts/python.exe traffic/generate.py --profile benign --n 45 \
+    --rate 3 --jitter 0.5 --api-key "cal-user-$i" --seed $((100+i)) &
+done; wait
+mv data/logs/requests.jsonl data/logs/benign_calib.jsonl
+
+# 2. Fit the baseline
+.venv/Scripts/python.exe detector/calibrate.py \
+  --log data/logs/benign_calib.jsonl --out thresholds.json
+
+# 3. Evaluation traffic: ordinary customers plus a throttled attacker.
+#    Different seeds from calibration, so there is no overlap.
+.venv/Scripts/python.exe traffic/generate.py --profile benign --n 45 \
+  --rate 3 --jitter 0.5 --api-key customer-0 --seed 200
+.venv/Scripts/python.exe traffic/generate.py --profile boundary --n 45 \
+  --rate 1.0 --attacker-pacing poisson --api-key L3-poisson --seed 303
+
+# 4. Score, alert, and measure
+.venv/Scripts/python.exe detector/score.py --log data/logs/requests.jsonl
+.venv/Scripts/python.exe eval/evaluate.py --log data/logs/requests.jsonl \
+  --attack-prefix L0- L1- L2- L3- L4- L5-
+```
+
+A single benign client with `--n 45` produces only 2 windows and calibration
+will refuse to run. Use three or more clients, or `--n 150` on one client.
+
+### Live alerting
+
+`score.py` prints an alert line for every flagged client:
+
+```
+[ALERT 19:12:04] EXTRACTION SUSPECTED  api_key=L3-poisson  flags=5/10  requests=45
+  signals: near_dup_rate(7.0), herdan_c(5.3), len_cv(4.5), token_entropy_norm(3.7), exact_dup_rate(3.6)
+```
+
+`--watch` tails the log and rescores continuously, so alerts fire live as
+traffic arrives. Each key is announced once, and again only if its evidence
+changes:
+
+```bash
+.venv/Scripts/python.exe detector/score.py --log data/logs/requests.jsonl --watch
+```
+
+### One-command demo
+
+```powershell
+powershell -ExecutionPolicy Bypass -File demo\run_demo.ps1
+```
+
+Starts the API, calibrates, runs a quiet benign phase, then an attacker, with
+banners and live alerts — built for a screen recording. `demo/run_demo.sh` is
+the POSIX equivalent. Everything it starts is stopped on exit, including on
+Ctrl+C. Add `-SkipCalibration` to reuse an existing baseline on a second take.
+
+### Dashboard
+
+```bash
+.venv/Scripts/python.exe -m uvicorn detector.dashboard:app --port 8050
+```
+
+Open <http://127.0.0.1:8050>. Re-scores every three seconds and shows each
+client's flag count, verdict, and the individual feature deviations behind it.
+Read-only — safe to run against a live experiment.
+
+### Tests
+
+```bash
+.venv/Scripts/python.exe api/test_api.py    # 36 hostile-input cases, needs API running
+powershell -File scripts\smoke_test.ps1      # 12 end-to-end checks, starts its own server
 ```
 
 ## Architecture
@@ -103,7 +204,7 @@ powershell -ExecutionPolicy Bypass -File scripts\smoke_test.ps1
                     ┌──────────────────────┼──────────────────────┐
                     ▼                      ▼                      ▼
         detector/calibrate.py     detector/score.py      detector/dashboard.py
-          benign traffic only      z vs baseline           live web view
+          benign traffic only    z vs baseline + alerts     live web view
                     │                      ▲
                     └──▶ thresholds.json ──┤
                                            │
@@ -111,28 +212,23 @@ powershell -ExecutionPolicy Bypass -File scripts\smoke_test.ps1
                              cross-key linkage + pooled score
 ```
 
-**The victim API** loads the model once at startup and holds it in module
-state. Inference runs in a threadpool under a lock (HF pipelines are not
-thread-safe), so a slow prediction cannot block the event loop. Every
-successful request appends one line — `ts`, `api_key`, `input`,
-`predicted_label`, `confidence`, `latency_ms` — flushed and `fsync`ed
-immediately so another process can tail it. Failed requests (401/422) are
-never logged.
+**The victim API** loads the model once at startup into module state. Inference
+runs in a threadpool under a lock (HF pipelines are not thread-safe), so a slow
+prediction cannot block the event loop. Every successful request appends one
+line — `ts`, `api_key`, `input`, `predicted_label`, `confidence`,
+`latency_ms` — flushed and `fsync`ed immediately so another process can tail
+it. Failed requests (401/422) are never logged.
 
 **The traffic generator** gives every client its own API key, which is the
-ground-truth label. Profiles: `benign` (natural sentences, bursty human
-pacing, ~20% repeats), `random` (uniform word salad — broad input coverage),
-`boundary` (near-duplicate probes that vary one token to find where the label
-flips), `sweep` (deterministic template enumeration), `natural`
-(natural-looking sentences enumerated systematically — designed to pass
-per-key content checks), and `mixed` (benign clients plus one attacker,
-concurrently). Attackers can throttle (`--attacker-rate`), jitter
-(`--attacker-jitter`), use memoryless Poisson arrivals
-(`--attacker-pacing poisson`), or split the campaign across K API keys
-(`--split K`) to evade detection.
+ground-truth label. Profiles: `benign`, `random` (uniform word salad),
+`boundary` (near-duplicate probes varying one token to find where the label
+flips), `sweep` (template enumeration), `natural` (natural-looking sentences
+enumerated systematically), `mixed`. Attackers can throttle
+(`--attacker-rate`), jitter (`--attacker-jitter`), use Poisson arrivals
+(`--attacker-pacing poisson`), or split across K keys (`--split K`).
 
-**The detector** computes ten rate-independent, sample-size-normalised
-features per window of 30 requests:
+**The detector** computes ten rate-independent, sample-size-normalised features
+per window of 30 requests:
 
 | Feature | Signal |
 |---|---|
@@ -141,189 +237,127 @@ features per window of 30 requests:
 | `len_cv`, `template_share` | Enumeration produces structurally identical queries |
 | `low_conf_rate`, `conf_p10` | Probing concentrates near the decision boundary |
 | `iat_burstiness` | Humans work in bursts; scripts do not |
-| `label_balance` | Sweeps drift toward the model's prior |
+| `label_balance` | Systematic coverage produces an unnaturally even label split |
 
-**Cross-key correlation** (`detector/campaign.py`) addresses the attacker who
-splits a campaign across several API keys. It links pairs of keys that are far
-more similar than benign pairs typically are — on shared vocabulary, shared
-structural skeletons, cross-key near-duplicates, and overlapping activity
-windows — then pools each connected component and scores the union. **Both**
-stages must agree before anything is called a campaign: linkage alone would
-flag two colleagues at the same company, and pooled anomaly alone is more
-likely several unrelated oddities than one actor.
+**Cross-key correlation** (`detector/campaign.py`) links keys that are far more
+similar than benign pairs typically are — shared vocabulary, shared structural
+skeletons, cross-key near-duplicates, overlapping activity — then pools each
+group and scores the union. Both linkage *and* pooled anomaly are required
+before anything is called a campaign.
 
-**Calibration** fits a robust baseline — median and MAD — on **benign traffic
-only**. Scoring is a two-sided robust z-score per feature; a client is called
-ATTACK when at least two features deviate by 3.5σ or more. The worst window
-wins, so an attacker cannot dilute a probing burst by padding it with
-innocuous queries.
+### No train/test leakage
 
-## Running the demo
+Worth stating explicitly, since it is the usual flaw in results like these:
 
-Start the API, then in another terminal:
-
-```bash
-# 1. Benign traffic to calibrate against (attack traffic must NOT appear here)
-python traffic/generate.py --profile benign --n 60 --rate 1.2 --jitter 0.5 \
-  --api-key cal-user-0 --seed 100
-cp data/logs/requests.jsonl data/logs/benign_calib.jsonl
-rm data/logs/requests.jsonl
-
-# 2. Fit the baseline
-python detector/calibrate.py --log data/logs/benign_calib.jsonl --out thresholds.json
-
-# 3. Evaluation traffic: benign users plus a throttled attacker
-python traffic/generate.py --profile benign   --n 60 --rate 1.2 --jitter 0.5 \
-  --api-key eval-user-0 --seed 200
-python traffic/generate.py --profile boundary --n 60 --rate 1.0 \
-  --attacker-pacing poisson --api-key atk-boundary --seed 301
-
-# 4. Score, and measure
-python detector/score.py    --log data/logs/requests.jsonl
-python eval/evaluate.py     --log data/logs/requests.jsonl --attack-prefix atk-
-
-# 5. Look for campaigns split across multiple keys
-python traffic/generate.py --profile natural --n 150 --split 5   --attacker-rate 1.5 --attacker-pacing poisson --attacker-key ghost --seed 900
-python detector/campaign.py --log data/logs/requests.jsonl
-```
-
-### Dashboard
-
-```bash
-python -m uvicorn detector.dashboard:app --port 8050
-```
-
-Open <http://127.0.0.1:8050>. It re-scores every client every three seconds
-and shows the flag count, the verdict, and **which features fired with what
-deviation** — a verdict without a reason is not much use to an operator
-deciding whether to revoke a key. It is read-only and safe to run against a
-live experiment.
-
-### Tests
-
-```bash
-python api/test_api.py                 # 36 hostile-input cases against a running API
-powershell -File scripts\smoke_test.ps1 # 12 end-to-end checks, starts its own server
-```
+- Calibration uses **benign traffic only**. The detector never sees an attack
+  sample while fitting, so it cannot learn the signatures of the specific
+  attack profiles this repo ships.
+- Calibration clients (`cal-user-*`, seeds 100–103) and evaluation clients
+  (`customer-*` seeds 200–203, attackers seeds 300+) are **disjoint**.
+- Only two numbers per feature are fitted — a median and a MAD. There is no
+  weight vector.
+- The decision constants `Z_FLAG = 3.5` and `MIN_FLAGS = 2` are fixed a priori
+  (3.5σ ≈ 0.0005 per feature under a normal baseline; two signals because one
+  is a quirk), not tuned against results.
 
 ## Results
 
-Six attackers, four benign clients, evaluated against a baseline calibrated on
-separate benign traffic with **non-overlapping seeds**. Every attacker was
-throttled to roughly 1 req/s — indistinguishable from a human on volume — and
-three used Poisson inter-arrivals.
+Measured on 555 requests from 14 clients, against a baseline fitted on 8
+windows from 4 separate benign clients.
 
 ```
                  predicted
                attack  benign
-actual attack       6       0
+actual attack      10       0
 actual benign       0       4
 
 precision 1.000   recall 1.000   f1 1.000
 ```
 
-**These numbers should not be trusted as a measure of real-world performance,
-and the section below explains why.** Ten synthetic clients from a single
-generator is a demonstration that the approach separates these profiles, not
-evidence of a deployable detector.
+**Detection rate 10/10 (100%). False-positive rate 0/4 (0%).**
 
-### Cross-key campaigns
+### Evasion ladder
 
-A campaign of 150 queries was split five ways — 30 queries per key at roughly
-0.24 req/s each — and run against the same baseline.
+Each level adds one evasion technique on top of the previous. All levels from
+L1 down run at roughly 1 request/second — indistinguishable from a normal
+customer on volume alone.
 
-| Campaign | Per-key verdict | Linked as one group | Pooled |
-|---|---|---|---|
-| `ghost-*` (template sweep) | 5/5 ATTACK | yes | CAMPAIGN |
-| `stealth-*` (natural text, systematic) | 5/5 ATTACK | yes | CAMPAIGN |
-| `wraith-*` (natural text, hardened) | 5/5 ATTACK | **no** | — |
+| Level | Evasion | Rate | Detected | Flags | Top signals |
+|---|---|---|---|---|---|
+| **L0** | none — high volume | 20/s | ✅ caught | 4/10 | `iat_burstiness(27.3)`, `near_dup_rate(7.0)`, `herdan_c(5.7)` |
+| **L1** | throttled to human pace | 1.0/s | ✅ caught | 3/10 | `iat_burstiness(36.4)`, `near_dup_rate(7.0)`, `herdan_c(6.0)` |
+| **L2** | throttled + timing jitter | 1.0/s | ✅ caught | 7/10 | `conf_p10(85.3)`, `iat_burstiness(24.5)`, `near_dup_rate(7.0)` |
+| **L3** | throttled + Poisson arrivals | 1.0/s | ✅ caught | 5/10 | `near_dup_rate(7.0)`, `herdan_c(5.3)`, `len_cv(4.5)` |
+| **L4** | split across 5 API keys + Poisson | 0.24/s each | ✅ 5/5 caught | 2–5/10 | `near_dup_rate`, `herdan_c`, `conf_p10` |
+| **L5** | natural-looking text + Poisson | 1.0/s | ✅ caught | 4/10 | `conf_p10(20.0)`, `iat_burstiness(7.9)`, `near_dup_rate(5.6)` |
 
-No benign client was ever pulled into a group.
+Benign clients over the same run:
 
-**This corrected an assumption.** Splitting a campaign across keys was expected
-to be the cheapest evasion available. It is not — at least not against this
-detector, because the features are per-window *shape* measures that do not
-depend on volume. A key sending 30 systematic queries looks as anomalous as one
-sending 3000. Distribution defeats rate-based detection, which this detector
-deliberately does not use.
+| Client | Flags | Verdict |
+|---|---|---|
+| `customer-0` | 0/10 | benign |
+| `customer-1` | 0/10 | benign |
+| `customer-2` | 0/10 | benign |
+| `customer-3` | 1/10 | benign (needs 2 to flag) |
 
-Cross-key linkage still earns its place, for **attribution**: it reports that
-ten flagged keys are two actors rather than ten independent ones, which is what
-an operator needs in order to respond. But on this evidence it is a second
-layer, not the primary defence.
+The L4 row is the one worth dwelling on. Splitting a campaign across five keys
+at a quarter of a request per second each defeats every rate limit anyone would
+plausibly configure — and all five members were still flagged individually,
+because the features measure query *shape* per window and do not care about
+volume.
 
-### Defects found and fixed during evaluation
-
-- **Degenerate feature scale, twice.** `low_conf_rate` and later
-  `label_balance` are zero (or near-constant) across benign calibration
-  windows, so their MAD collapsed and an arbitrary `1e-3` floor turned a
-  single unusual request into a 33σ event — one false positive carried
-  z-scores up to 266. Fixed by deriving the floor from window size: a
-  proportion over W requests moves in steps of 1/W, so deviations below one
-  step are quantisation noise. The second instance was only noticed because an
-  attack was being caught for the *wrong reason* — every member of a campaign
-  showed an identical z of 18.2.
-- **A 500 on legal input.** A 2000-character request can exceed DistilBERT's
-  512-token window (`"a " * 1000` is 2000 chars but 1002 tokens), raising a
-  tensor size mismatch. Fixed by truncating at the pipeline call.
-- **Sentiment-skewed enumeration.** The first `natural` attack profile
-  advanced its opinion index once per pass over subjects, so any short slice
-  was 100% one sentiment — trivially detectable for a reason that had nothing
-  to do with extraction. Fixed with coprime strides, which made the attacker
-  meaningfully harder and the evaluation honest.
+**L4 was also linked as a campaign** by `detector/campaign.py`, which grouped
+the members and confirmed them on pooled traffic — though see Shortcomings for
+how that linkage over-merges.
 
 ## Shortcomings
 
-Stated plainly, because most of these are unresolved.
+Stated plainly. Most of these are unresolved.
 
-**The benign class is synthetic and far too homogeneous.** All benign traffic
-comes from one template-based generator. Real user traffic is messier in ways
-that would produce false positives this testbed cannot show. The false-positive
-rate reported above is close to meaningless; treat it as a lower bound on a
-number that is genuinely unknown.
+**The benign class is synthetic and too homogeneous.** All benign traffic comes
+from one template-based generator. Real user traffic is messier in ways that
+would produce false positives this testbed cannot show. **The 0% false-positive
+rate above is close to meaningless** — treat it as a lower bound on a number
+that is genuinely unknown. Four benign clients is not a sample.
 
-**`conf_p10` is doing much of the work, and it is model-specific.** DistilBERT
-SST-2 is extremely confident on ordinary text (>0.99 routinely), which makes
-low-confidence queries stand out sharply. A better-calibrated victim model
-would weaken this feature substantially, and by how much has not been measured.
+**`conf_p10` and `iat_burstiness` do a lot of the work, and both are fragile.**
+DistilBERT SST-2 is extremely confident on ordinary text (>0.99 routinely),
+which makes probing queries stand out sharply; a better-calibrated victim model
+would weaken `conf_p10` substantially. `iat_burstiness` relies on the benign
+clients' bursty pacing, which is a property of the generator as much as of real
+humans.
 
 **Automated is not the same as attacking.** A legitimate machine-paced
-integration sending perfectly ordinary sentences was flagged as an attacker.
-Adding a few service accounts to the human baseline does *not* fix this — a
-minority cannot move a median. Calibrating a **separate baseline per client
-class** does: measured here, the same legitimate client scored 2 flags
-(ATTACK) against a human baseline and 0 flags (benign) against a service-account
-baseline, with attack recall unchanged at 6/6. This is an operational
-requirement, not an optional refinement.
+integration sending perfectly ordinary sentences was flagged in earlier
+testing. Adding a few service accounts to a human baseline does *not* fix it —
+a minority cannot move a median. Calibrating a **separate baseline per client
+class** does: the same client scored 2 flags (ATTACK) against a human baseline
+and 0 flags (benign) against a service-account baseline, with attack recall
+unchanged. This is an operational requirement, not an optional refinement.
 
-**The attacks are the ones we thought of.** Four profiles, all written by the
-same person who wrote the detector. Benign-only calibration limits how much
-this can bias results — the detector never sees an attack sample and cannot
-learn their signatures — but it does not eliminate it. An attacker who
-generates queries from real review text at human pace with natural vocabulary
-would defeat most of these features, and has not been tested.
+**Cross-key linkage over-merges and is evadable.** In the run above it merged
+L0–L4 into a single group of eight, because they all derive from the same
+attack corpus — it answers "same tooling?", not "same actor?". In earlier
+testing a campaign that partitioned its grid with coprime strides was not
+linked at all, because partitioning makes members' queries *complementary*
+rather than overlapping — the opposite of what similarity linkage looks for.
 
-**Cross-key linkage is evadable, and over-merges.** The hardened `wraith`
-campaign was not linked at all: partitioning a grid with coprime strides makes
-members' queries *complementary* rather than overlapping, which is precisely
-what similarity-based linkage looks for. In the other direction, two separate
-campaigns using the same tooling were merged into a single group of ten by
-transitive closure. Linkage answers "same tooling?", not "same actor?", and the
-report should be read that way.
+**Partial windows are not scored.** A client with fewer than 30 requests is
+reported as *insufficient*, not guessed at. This was found the hard way: live
+scoring of an in-flight window gave a benign customer `iat_burstiness` z=37 at
+12 requests, which settled to z=10 once the window filled. Features are not
+comparable across window lengths, so a live detector needs one full window
+before it can say anything — roughly 20 seconds at 1.5 req/s.
 
-**Detection margins on the hardest attacker are thin.** `wraith` was caught,
-but at 2–4 flags with z-scores of 3.5–5.5, against a 3.5 cutoff. The earlier,
-cruder profiles cleared it by z-scores of 15–50. An attacker drawing from a
-genuinely varied corpus rather than a template grid would likely fall below the
-threshold, and that has not been tested.
+**Small samples throughout.** 30-request windows, 1–2 windows per client, 8
+calibration windows. Ratios estimated from 30 samples are noisy and the
+baseline's spread estimates are rough.
 
-**No adaptive attacker.** Everything here is static. An attacker with
-dashboard feedback could tune queries until they stopped being flagged. The
-features were chosen to make that expensive rather than impossible.
-
-**Small samples.** 30-request windows, 3 windows per client, 33 calibration
-windows. Ratios estimated from 30 samples are noisy, and the baseline's spread
-estimates are correspondingly rough.
+**The attacks are the ones we thought of.** Benign-only calibration limits how
+much this biases results — the detector never sees an attack sample — but does
+not eliminate it. An attacker drawing from a genuinely varied real corpus at
+human pace has not been tested, and margins at L5 (4 flags, z-scores 3.7–20)
+are thin enough that it might pass.
 
 **Docker is unverified.** See the note in Quickstart.
 

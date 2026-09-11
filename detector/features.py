@@ -234,7 +234,16 @@ def group_by_key(rows):
 
 
 def windows(rows, size, stride):
-    """Consecutive request windows, so a short burst is not diluted by history."""
+    """Consecutive full-size request windows.
+
+    Partial windows are dropped deliberately. The baseline is fitted on
+    windows of exactly `size`, and several features -- burstiness above all --
+    are not comparable across window lengths: measured live, a client with 12
+    requests in flight scored z=37 on iat_burstiness and settled to z=10 once
+    the window filled. Scoring a partial window against a full-window baseline
+    manufactures false positives, so a client with fewer than `size` requests
+    is reported as insufficient rather than guessed at.
+    """
     if len(rows) < size:
-        return [rows] if rows else []
+        return []
     return [rows[i:i + size] for i in range(0, len(rows) - size + 1, stride)]

@@ -97,8 +97,7 @@ def collect_samples(paths, window, stride, seed=0):
         for key, rows in group_by_key(load_log(path)).items():
             keys.add(key)
             for w in windows(rows, window, stride):
-                if len(w) >= 10:  # too few requests to estimate ratios from
-                    samples.append(compute_features(w, rng))
+                samples.append(compute_features(w, rng))
     return samples, keys
 
 

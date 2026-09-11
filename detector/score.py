@@ -32,6 +32,7 @@ import json
 import os
 import random
 import sys
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -73,7 +74,6 @@ def score_client(rows, baseline, window, stride, rng):
     results = [
         score_window(compute_features(w, rng), baseline)
         for w in windows(rows, window, stride)
-        if len(w) >= 10
     ]
     if not results:
         return None
@@ -84,12 +84,75 @@ def score_client(rows, baseline, window, stride, rng):
     return worst
 
 
+# --- Alerting. Written to stdout so it shows up in a terminal during a demo
+# --- and in the container logs in deployment.
+def alert_line(key, r):
+    signals = ", ".join("%s(%.1f)" % (n, r["z"][n])
+                        for n in sorted(r["flags"], key=lambda n: -r["z"][n]))
+    return ("[ALERT %s] EXTRACTION SUSPECTED  api_key=%s  flags=%d/%d  "
+            "requests=%d  signals: %s"
+            % (time.strftime("%H:%M:%S"), key, r["n_flags"], len(FEATURE_NAMES),
+               r["n_requests"], signals))
+
+
+def scan(log_paths, baseline, window, stride, rng):
+    """Score every client in the logs. Returns {key: result}."""
+    rows = []
+    for path in log_paths:
+        if os.path.exists(path):
+            rows.extend(load_log(path))
+    out = {}
+    for key, client_rows in sorted(group_by_key(rows).items()):
+        r = score_client(client_rows, baseline, window, stride, rng)
+        if r:
+            out[key] = r
+    return out
+
+
+def watch(args, baseline, window, stride, rng):
+    """Tail the log, rescoring on an interval and alerting on new evidence.
+
+    A key is announced once. It is announced again only when its evidence
+    changes -- an operator watching a demo should see escalation, not the
+    same line repeating every few seconds.
+    """
+    print("watching %s every %.1fs -- Ctrl+C to stop\n"
+          % (", ".join(args.log), args.interval))
+    announced = {}
+    seen_requests = 0
+    try:
+        while True:
+            results = scan(args.log, baseline, window, stride, rng)
+            total = sum(r["n_requests"] for r in results.values())
+            for key, r in sorted(results.items(),
+                                 key=lambda kv: -kv[1]["n_flags"]):
+                if r["verdict"] != "ATTACK":
+                    continue
+                fingerprint = tuple(sorted(r["flags"]))
+                if announced.get(key) != fingerprint:
+                    announced[key] = fingerprint
+                    print(alert_line(key, r))
+            if total != seen_requests:
+                print("  ... %d requests from %d clients, %d flagged"
+                      % (total, len(results),
+                         sum(r["verdict"] == "ATTACK" for r in results.values())))
+                seen_requests = total
+            time.sleep(args.interval)
+    except KeyboardInterrupt:
+        print("\nstopped. %d client(s) alerted during this session." % len(announced))
+    return 0
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--log", nargs="+", required=True)
     p.add_argument("--thresholds", default="thresholds.json")
     p.add_argument("--json", action="store_true", help="emit JSON instead of a table")
+    p.add_argument("--watch", action="store_true",
+                   help="tail the log and alert live as traffic arrives")
+    p.add_argument("--interval", type=float, default=3.0,
+                   help="seconds between rescans in --watch mode")
     p.add_argument("--seed", type=int, default=0)
     args = p.parse_args()
 
@@ -101,19 +164,14 @@ def main():
         cal = json.load(fh)
     baseline, window, stride = cal["features"], cal["window"], cal["stride"]
 
-    rows = []
-    for path in args.log:
-        rows.extend(load_log(path))
-    if not rows:
+    rng = random.Random(args.seed)
+    if args.watch:
+        return watch(args, baseline, window, stride, rng)
+
+    verdicts = scan(args.log, baseline, window, stride, rng)
+    if not verdicts:
         print("No usable log lines found.")
         return 2
-
-    rng = random.Random(args.seed)
-    verdicts = {}
-    for key, client_rows in sorted(group_by_key(rows).items()):
-        r = score_client(client_rows, baseline, window, stride, rng)
-        if r:
-            verdicts[key] = r
 
     if args.json:
         print(json.dumps(verdicts, indent=2, sort_keys=True))
@@ -134,6 +192,16 @@ def main():
         print("%-20s %6d %6d %7d %8s  %s"
               % (key, r["n_requests"], r["n_windows"], r["n_flags"],
                  r["verdict"], detail))
+
+    # --- Alerts after the table so they are the last thing on screen. ---
+    flagged = [(k, r) for k, r in verdicts.items() if r["verdict"] == "ATTACK"]
+    print()
+    if flagged:
+        for key, r in sorted(flagged, key=lambda kv: -kv[1]["n_flags"]):
+            print(alert_line(key, r))
+        print("\n%d of %d clients flagged." % (len(flagged), len(verdicts)))
+    else:
+        print("No clients flagged; %d scored." % len(verdicts))
     return 0
 
 
