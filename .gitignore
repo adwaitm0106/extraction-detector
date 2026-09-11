@@ -13,3 +13,6 @@ thresholds.json
 # Enforcement blocklist written by the detector at runtime
 blocked.json
 blocked.json.tmp
+
+# Local scratch copies of baselines
+data/logs/*.json

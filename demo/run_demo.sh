@@ -5,8 +5,8 @@
 #
 # Everything it starts, it stops, including on Ctrl+C.
 #
-#   ./demo/run_demo.sh              full run, ~2m20s
-#   ./demo/run_demo.sh --skip-calib reuse an existing baseline, ~1m30s
+#   ./demo/run_demo.sh              full run, ~2m45s
+#   ./demo/run_demo.sh --skip-calib reuse an existing baseline, ~1m40s
 
 set -euo pipefail
 
