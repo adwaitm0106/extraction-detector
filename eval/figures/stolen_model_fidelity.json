@@ -1,0 +1,64 @@
+{
+  "heldout": 300,
+  "majority_baseline": 0.5333333333333333,
+  "unwatched": {
+    "pairs": 500,
+    "fidelity": 0.9866666666666667
+  },
+  "enforced": {
+    "pairs": 30,
+    "queries_before_429": 30,
+    "was_cut_off": true,
+    "fidelity": 0.8733333333333333
+  },
+  "curve": [
+    {
+      "pairs": 10,
+      "fidelity": 0.5333333333333333
+    },
+    {
+      "pairs": 20,
+      "fidelity": 0.7166666666666667
+    },
+    {
+      "pairs": 30,
+      "fidelity": 0.8733333333333333
+    },
+    {
+      "pairs": 40,
+      "fidelity": 0.8433333333333334
+    },
+    {
+      "pairs": 50,
+      "fidelity": 0.91
+    },
+    {
+      "pairs": 75,
+      "fidelity": 0.93
+    },
+    {
+      "pairs": 100,
+      "fidelity": 0.9333333333333333
+    },
+    {
+      "pairs": 150,
+      "fidelity": 0.9466666666666667
+    },
+    {
+      "pairs": 200,
+      "fidelity": 0.9466666666666667
+    },
+    {
+      "pairs": 300,
+      "fidelity": 0.9533333333333334
+    },
+    {
+      "pairs": 400,
+      "fidelity": 0.9766666666666667
+    },
+    {
+      "pairs": 500,
+      "fidelity": 0.9866666666666667
+    }
+  ]
+}

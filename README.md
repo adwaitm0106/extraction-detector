@@ -38,7 +38,7 @@ flag anyone on a single signal alone.
 api/        the "victim" API - a sentiment model that logs every request
 traffic/    fake traffic: normal customers and several kinds of attacker
 detector/   detection - features, calibration, scoring, enforcement, dashboard
-eval/       measuring the detector, plus the chart in eval/figures/
+eval/       measuring the detector, the stolen-copy experiment, and the charts
 demo/       one script that runs the whole story end to end
 ```
 
@@ -370,6 +370,58 @@ thinner than we'd like. Making the baseline broader (more varied normal
 customers) cut the false alarms but also shrank the margin on the hardest
 attackers. That trade-off is real and you don't get to escape it.
 
+### Does blocking actually protect the model?
+
+Detection is only worth something if it stops the theft, so we measured that
+directly by playing the attacker. `eval/steal.py` sends natural-looking queries
+to the victim, keeps the question and answer pairs, trains a small copy on them
+(a plain naive Bayes classifier, written in the script), and then measures how
+often the copy agrees with the victim on 300 sentences neither of them trained
+on.
+
+It does this twice. Once with nobody watching, and once with the detector
+enforcing in the loop, so the attacker gets 429s the moment it's flagged.
+Nothing is simulated: it's the same detector, the same blocklist file, the
+same API.
+
+```
+harvested pairs          fidelity
+----------------------------------
+10                          53.3%
+20                          71.7%
+30                          87.3%  <- where enforcement cut the attacker off
+50                          91.0%
+100                         93.3%
+200                         94.7%
+300                         95.3%
+500                         98.7%
+
+copy trained WITHOUT enforcement :  500 pairs -> 98.7% agreement with the victim
+copy trained WITH enforcement    :   30 pairs -> 87.3% agreement with the victim
+always guess the majority label  :         -> 53.3%
+```
+
+![Stolen copy fidelity against harvest size](eval/figures/stolen_model_fidelity.png)
+
+The attacker was cut off after 30 queries, which is the earliest the detector
+can act at all (it won't judge anyone on fewer than 30). Left alone, the same
+attacker got 500 pairs and a copy that disagrees with the victim about one time
+in eighty. Blocked, it was left with a copy that's wrong about one time in
+eight. That's a tenfold difference in error rate, and it's the difference the
+detector makes in the attacker's own currency.
+
+Two honest caveats. The held-out sentences come from the same template family
+as the attacker's queries, so the copy looks better here than it would on real
+text; 87% after 30 pairs is flattering to the attacker. And a naive Bayes over
+a 60-word vocabulary is a weak student on purpose. The absolute numbers aren't
+the point. The gap is.
+
+Run it yourself with the API up and a baseline calibrated:
+
+```bash
+.venv/Scripts/python.exe eval/steal.py
+```
+
 ## What's not great about this
 
 Being honest, because most of this isn't fixed.
@@ -415,6 +467,12 @@ only limits the damage, since the detector never sees our attacks while
 learning, but it doesn't remove it. An attacker pulling real sentences from a
 real corpus at human speed hasn't been tried, and the margins on our closest
 cases were thin enough that it might get through.
+
+**The stolen-copy numbers are optimistic for the attacker.** The held-out set
+is built from the same templates the attacker queries with, and the student is
+deliberately tiny. On real text, 30 pairs would buy the attacker much less than
+87%. The tenfold gap in error rate is the honest takeaway; the absolute
+percentages are not.
 
 **Blocking is blunt.** Once flagged, a key gets 429 on everything until the
 blocklist is cleared. There's no appeal, no cooldown, no partial throttle. Fine
