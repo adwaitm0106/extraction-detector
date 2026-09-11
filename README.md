@@ -39,7 +39,8 @@ api/        the "victim" API - a sentiment model that logs every request
 traffic/    fake traffic: normal customers and several kinds of attacker
 detector/   detection - features, calibration, scoring, enforcement, dashboard
 eval/       measuring the detector, the stolen-copy experiment, and the charts
-demo/       one script that runs the whole story end to end
+demo/       one script that runs the whole story end to end, plus a
+            terminal walkthrough and a video script
 ```
 
 ## Run it yourself
@@ -97,6 +98,11 @@ for Mac and Linux. It cleans up after itself, including if you hit Ctrl+C.
 6. A results table, then everything shuts down
 
 If Phase 1 stays quiet and Phase 2 alerts and blocks, it's working.
+
+`demo/terminal_walkthrough.md` has the real output from a full run, stage by
+stage, with a note on what each stage proves. Useful if you want to see what
+should happen before you run it, or if something looks different on your
+machine.
 
 ### Checking it by hand
 
