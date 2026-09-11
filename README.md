@@ -16,16 +16,16 @@ plenty of data.
 
 So this project doesn't look at how *much* someone queries. It looks at *what*
 they ask. Copying a model means covering the input space in an organised way,
-and organised queries look different from real ones — different vocabulary,
+and organised queries look different from real ones. Different vocabulary,
 more repetition, more queries sitting right on the edge where the model can't
 decide. Those patterns don't go away when you slow down.
 
-**Who'd use this:** a team running a paid inference API — sentiment,
+**Who'd use this:** a team running a paid inference API. Sentiment,
 moderation, classification, anything sold per call.
 
 **What it costs to get wrong:** if you wrongly flag a real customer, they get
 throttled or cut off, and that's a support ticket and maybe a lost account. So
-the detector never just says "attacker" — it shows which signals fired and how
+the detector never just says "attacker". It shows which signals fired and how
 far off normal they were, and it won't flag anyone on a single signal alone.
 
 ## What's in here
@@ -46,7 +46,7 @@ model.
 **Everything below assumes you're inside the `extraction-detector` folder.**
 All the paths are relative. If you run these from the parent folder you'll get
 confusing errors like `No module named 'api'` or `No baseline at
-thresholds.json` — the real problem is just that you're in the wrong directory.
+thresholds.json`. The real problem is just that you're in the wrong directory.
 
 ### Setup
 
@@ -67,24 +67,24 @@ everywhere in this README.
 
 ### The fastest way to see it work
 
-One command runs the whole thing — starts the API, learns what normal looks
+One command runs the whole thing. It starts the API, learns what normal looks
 like, sends benign traffic, then sends an attacker, and alerts on it live:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File demo\run_demo.ps1
 ```
 
-Takes about 2 minutes 20 seconds the first time. There's a `demo/run_demo.sh`
+Takes about 2 and a half minutes the first time. There's a `demo/run_demo.sh`
 for Mac and Linux. It cleans up after itself, including if you hit Ctrl+C.
 
 **What you should see:**
 
-1. `API ready: model_loaded=true` — the model has loaded
-2. A calibration phase — four fake customers. This is the detector learning
+1. `API ready: model_loaded=true` means the model has loaded
+2. A calibration phase with four fake customers. This is the detector learning
    what normal traffic looks like
-3. **PHASE 1** in green — normal customers querying. You should see
+3. **PHASE 1** in green: normal customers querying. You should see
    `30 requests scored - all clean` and **no alerts**
-4. **PHASE 2** in red — the attacker starts. About 25 seconds later a red
+4. **PHASE 2** in red: the attacker starts. About 25 seconds later a red
    `[ALERT] EXTRACTION SUSPECTED` line appears with the signals that fired
 5. A results table, then everything shuts down
 
@@ -105,7 +105,7 @@ curl.exe -s http://127.0.0.1:8000/health
 ```
 
 You want `{"status":"ok","model_loaded":true}`. If `model_loaded` is `false`,
-it's still downloading the model — give it a minute.
+it's still downloading the model, give it a minute.
 
 > **Windows note:** in PowerShell, `curl` is not curl. It's an alias for
 > `Invoke-WebRequest` and it will reject these flags. Type `curl.exe` with the
@@ -129,8 +129,8 @@ powershell -ExecutionPolicy Bypass -File scripts\smoke_test.ps1
 
 That starts its own server, runs 12 checks, and shuts down. You want
 `All 12 checks passed.` There's also `api/test_api.py`, which throws 36 nasty
-inputs at a running API — empty strings, emoji, null bytes, 10,000 characters,
-50 requests at once — and checks it never falls over.
+inputs at a running API (empty strings, emoji, null bytes, 10,000 characters,
+50 requests at once) and checks it never falls over.
 
 ### Doing it step by step
 
@@ -210,13 +210,18 @@ docker compose up --build
 - **`curl` in PowerShell isn't curl.** Use `curl.exe`.
 - **The API writes the log, not the traffic generator.** To put the log
   somewhere else, set `LOG_PATH` on the *server* before starting it. Setting it
-  on the generator does nothing — it's silently ignored.
+  on the generator does nothing, it's silently ignored.
 - **Nothing works until you calibrate.** `score.py` needs `thresholds.json`,
   which `calibrate.py` creates. Run it on normal traffic only.
 - **A client needs 30 requests before it can be judged.** Below that it shows
   as `insufficient`. Live, that's about 20 seconds before the first verdict.
 - **`--api-key` is ignored with `--split` or `--profile mixed`.** Those modes
   name their own keys, based on `--attacker-key`.
+- **Calibrate at the same pace you'll judge.** The burstiness signal shifts
+  with how fast the calibration clients ran. We learned this the hard way: the
+  demo used to calibrate at 6 requests a second and then judge customers at
+  1.5, and those customers came out at z=11 on burstiness. Same rate on both
+  sides and they dropped to zero.
 
 ## How it works
 
@@ -257,8 +262,8 @@ ten things:
 | burstiness of arrival times | people work in bursts; scripts don't |
 | label balance | systematic coverage gives an unnaturally even split |
 
-None of these depend on how many requests someone sends. That's deliberate —
-volume is the obvious signal and the easiest one to dodge.
+None of these depend on how many requests someone sends. That's deliberate.
+Volume is the obvious signal and the easiest one to dodge.
 
 **Calibration** takes normal traffic and works out a typical value and a spread
 for each of the ten measures. Scoring then asks, for each client, how far from
@@ -279,7 +284,7 @@ you test it on. We didn't:
   attack while learning, so it can't memorise the specific attacks in this repo.
 - The clients used for calibration and the clients used for testing are
   **different clients with different random seeds**.
-- Only two numbers per measure are learned — a middle and a spread. There are
+- Only two numbers per measure are learned, a middle and a spread. There are
   no weights to overfit.
 - The two decision numbers (3.5 standard deviations, at least 2 signals) were
   picked up front from basic statistics, not tuned until the results looked good.
@@ -302,7 +307,7 @@ Caught 10 out of 10 attackers. Zero false alarms on 4 normal clients.
 
 The interesting part is *which* attackers. Each row below adds one more trick
 on top of the last. Everything from L1 down runs at about one request per
-second — no rate limit anywhere would notice them.
+second. No rate limit anywhere would notice them.
 
 | | What the attacker did | Speed | Caught? | What gave it away |
 |---|---|---|---|---|
@@ -317,7 +322,7 @@ Normal customers over the same run: three tripped nothing at all, one tripped a
 single signal, which isn't enough to be flagged.
 
 L4 is the one worth pointing at. Five keys, a quarter of a request per second
-each — that beats any rate limit you'd realistically configure. All five were
+each. That beats any rate limit you'd realistically configure. All five were
 still caught individually, because the detector is looking at the shape of the
 queries, not the count.
 
@@ -327,8 +332,8 @@ Being honest, because most of this isn't fixed.
 
 **The "normal" traffic is fake and all looks the same.** Every benign client
 comes from one generator using templates. Real users are messier in ways this
-setup can't show. So the zero false alarms above isn't a real-world number —
-it's the best case, and the true rate is unknown. Four fake clients is not a
+setup can't show. So the zero false alarms above isn't a real-world number.
+It's the best case, and the true rate is unknown. Four fake clients is not a
 sample size.
 
 **Two signals do a lot of the work, and both are shaky.** The confidence signal
@@ -336,28 +341,29 @@ works well because this particular model is very sure of itself on ordinary
 text (over 0.99 almost always), which makes probing queries stand out. A
 better-calibrated model would blunt it. The burstiness signal leans on benign
 clients being bursty, which is as much a property of our generator as of real
-people.
+people, and it drifts if the calibration clients ran at a different pace from
+the ones being judged.
 
-**Automated doesn't mean malicious.** A legitimate service account — a backend
-integration sending perfectly ordinary text on a schedule — got flagged during
+**Automated doesn't mean malicious.** A legitimate service account (a backend
+integration sending perfectly ordinary text on a schedule) got flagged during
 testing. The fix is to calibrate a separate baseline for service accounts
 instead of lumping them in with humans. Adding a few of them to a human
 baseline doesn't help, because a handful of clients can't shift a median. This
 is something you'd have to do before deploying, not an optional extra.
 
 **Grouping keys is rough.** It merged several different attackers into one
-group because they came from the same tooling — it really answers "same
+group because they came from the same tooling. It really answers "same
 tooling?" rather than "same person?". And an attacker who splits the work so
 that their keys *don't* overlap slips past it entirely, since it's looking for
 similarity.
 
-**Everything is small.** 30 requests per window, 1–2 windows per client, 8
+**Everything is small.** 30 requests per window, 1 to 2 windows per client, 8
 windows to calibrate from. Percentages worked out from 30 samples bounce around
 a lot.
 
 **We only tested the attacks we thought of.** Calibrating on normal traffic
-only limits the damage — the detector never sees our attacks while learning —
-but it doesn't remove it. An attacker pulling real sentences from a real corpus
+only limits the damage, since the detector never sees our attacks while
+learning, but it doesn't remove it. An attacker pulling real sentences from a real corpus
 at human speed hasn't been tried, and the margin on our closest case (L5) was
 thin enough that it might get through.
 
@@ -367,4 +373,4 @@ thin enough that it might get through.
 
 ## Team
 
-Adwait M. — <https://github.com/adwaitm0106>
+Adwait M. (https://github.com/adwaitm0106)

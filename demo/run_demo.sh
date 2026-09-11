@@ -143,7 +143,8 @@ else
   echo
   rm -f "$LOG"
   for i in 0 1 2 3; do
-    track "$PY" traffic/generate.py --profile benign --n 45 --rate 6 \
+    # Same --rate as the Phase 1 customers, or the burstiness baseline drifts.
+    track "$PY" traffic/generate.py --profile benign --n 45 --rate 1.5 \
       --jitter 0.5 --api-key "cal-user-$i" --seed $((100 + i))
   done
   wait

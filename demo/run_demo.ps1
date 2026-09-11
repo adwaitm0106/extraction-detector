@@ -174,8 +174,12 @@ try {
         if (Test-Path $LogPath) { Remove-Item $LogPath -Force }
         $jobs = @()
         foreach ($i in 0..3) {
+            # Same --rate as the Phase 1 customers below. Calibrating at a
+            # different pace than you later judge shifts the burstiness
+            # baseline: measured, customers scored z=11-12 on iat_burstiness
+            # when calibration ran at rate 6 and Phase 1 at rate 1.5.
             $jobs += Start-Tracked $Python @("traffic/generate.py","--profile","benign",
-                "--n","45","--rate","6","--jitter","0.5","--api-key","cal-user-$i",
+                "--n","45","--rate","1.5","--jitter","0.5","--api-key","cal-user-$i",
                 "--seed","$(100+$i)")
         }
         $jobs | ForEach-Object { $_.WaitForExit() }
