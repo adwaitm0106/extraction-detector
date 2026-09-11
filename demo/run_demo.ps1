@@ -26,6 +26,8 @@ $Base = "http://127.0.0.1:$Port"
 $LogPath = Join-Path $Root "data\logs\requests.jsonl"
 $CalibPath = Join-Path $Root "data\logs\benign_calib.jsonl"
 $Thresholds = Join-Path $Root "thresholds.json"
+$Blocklist = Join-Path $Root "blocked.json"
+$AttackerOut = Join-Path $env:TEMP "demo_attacker_out.txt"
 
 # Every process this script starts, so the cleanup handler can find them.
 $script:Started = @()
@@ -60,12 +62,29 @@ function Cleanup {
         Write-Host "  released port $Port" -ForegroundColor DarkGray
     }
     $script:Started = @()
+    # Leave no block behind: a key throttled in a demo must not stay throttled
+    # for whoever runs the API next.
+    if (Test-Path $Blocklist) { Remove-Item $Blocklist -Force -ErrorAction SilentlyContinue }
     Write-Host "done." -ForegroundColor DarkGray
 }
 
 # Ctrl+C in PowerShell raises a terminating error, which the trap catches;
 # without this the API would survive the script.
 trap { Cleanup; break }
+
+# Plain-English reason per signal, mirrored from detector/score.py EXPLAIN.
+$script:Explain = @{
+    "exact_dup_rate"     = "repeats the exact same queries"
+    "near_dup_rate"      = "sends many near-identical queries"
+    "herdan_c"           = "uses an unusually narrow vocabulary"
+    "token_entropy_norm" = "word choice is unnaturally uniform or skewed"
+    "len_cv"             = "query lengths are unusually uniform"
+    "template_share"     = "many queries share one structural template"
+    "low_conf_rate"      = "unusually many queries where the model was unsure"
+    "conf_p10"           = "the model's least-confident answers are far outside normal"
+    "iat_burstiness"     = "request timing does not look human"
+    "label_balance"      = "labels split unusually evenly, like systematic coverage"
+}
 
 # --- Live scoring, printed into THIS console so a screen recording catches
 # --- it. Polls score.py --json and announces only newly-flagged keys, so the
@@ -76,7 +95,7 @@ function Watch-Inline($seconds, $announced) {
         $scored = $false
         if (Test-Path $LogPath) {
             $raw = & $Python (Join-Path $Root "detector\score.py") `
-                --log $LogPath --thresholds $Thresholds --json 2>$null
+                --log $LogPath --thresholds $Thresholds --json --enforce $Blocklist 2>$null
             if ($LASTEXITCODE -eq 0 -and $raw) {
                 try { $v = ($raw -join "`n") | ConvertFrom-Json } catch { $v = $null }
                 if ($v) {
@@ -97,6 +116,13 @@ function Watch-Inline($seconds, $announced) {
                                 "flags=$($r.n_flags)/10  requests=$($r.n_requests)") `
                                 -ForegroundColor Red
                             Write-Host "      signals: $sig" -ForegroundColor Red
+                            $why = ($r.flags | Sort-Object { -$r.z.$_ } |
+                                    ForEach-Object { $script:Explain[$_] }) -join "; "
+                            Write-Host "      why: $why" -ForegroundColor Red
+                            Write-Host ""
+                            Write-Host ("  [BLOCK $(Get-Date -Format HH:mm:ss)] " +
+                                "api_key=$key now gets HTTP 429 on every request") `
+                                -ForegroundColor Yellow
                             Write-Host ""
                         }
                     }
@@ -191,6 +217,10 @@ try {
     }
 
     if (Test-Path $LogPath) { Remove-Item $LogPath -Force }
+    # A stale blocklist from a previous take would 429 the attacker from its
+    # very first request and the demo would prove nothing.
+    if (Test-Path $Blocklist) { Remove-Item $Blocklist -Force }
+    if (Test-Path $AttackerOut) { Remove-Item $AttackerOut -Force }
 
     # ------------------------------------------------------------ PHASE 1 ---
     Banner "PHASE 1: Normal traffic - watch the console" "Green"
@@ -215,18 +245,37 @@ try {
     Write-Host "  timing looks human too. The only difference is WHAT it asks:"
     Write-Host "  systematic probes around the model's decision boundary."
     Write-Host ""
-    Write-Host "  Watch for the ALERT line." -ForegroundColor Red
+    Write-Host "  Watch for the ALERT line, then the BLOCK line. After the block," -ForegroundColor Red
+    Write-Host "  every further request from that key is answered with HTTP 429." -ForegroundColor Red
     Write-Host ""
 
-    Start-Tracked $Python @("traffic/generate.py","--profile","boundary",
-        "--n","40","--rate","1.5","--attacker-pacing","poisson",
-        "--api-key","extraction-attacker","--seed","303") | Out-Null
-    Watch-Inline 32 $announced
+    # Output captured so the attacker's own status-code tally can be shown at
+    # the end: it is the cleanest proof that enforcement actually happened.
+    $atk = Start-Process -FilePath $Python -ArgumentList @("traffic/generate.py",
+        "--profile","boundary","--n","60","--rate","1.5","--attacker-pacing","poisson",
+        "--api-key","extraction-attacker","--seed","303") `
+        -WorkingDirectory $Root -PassThru -WindowStyle Hidden `
+        -RedirectStandardOutput $AttackerOut
+    $script:Started += $atk
+    Watch-Inline 45 $announced
+
+    Write-Host ""
+    Write-Host "  What the attacker saw from its side:" -ForegroundColor Yellow
+    if (Test-Path $AttackerOut) {
+        Get-Content $AttackerOut | Select-String -Pattern "sent|status codes" |
+            ForEach-Object { Write-Host "    $($_.Line)" -ForegroundColor Yellow }
+    }
+    Write-Host "  (429 = throttled by the detector; 200 = got through before the block)" -ForegroundColor DarkGray
 
     # ------------------------------------------------------------- RESULT ---
     Banner "RESULT" "Magenta"
     & $Python (Join-Path $Root "detector\score.py") --log $LogPath --thresholds $Thresholds
     Write-Host ""
+    if (Test-Path $Blocklist) {
+        Write-Host "  blocked.json (what the API is enforcing right now):" -ForegroundColor Yellow
+        Get-Content $Blocklist | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+        Write-Host ""
+    }
     & $Python (Join-Path $Root "eval\evaluate.py") --log $LogPath `
         --thresholds $Thresholds --attack-prefix extraction-
     Banner "DEMO COMPLETE" "Magenta"

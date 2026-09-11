@@ -10,5 +10,6 @@ __pycache__/
 .env
 thresholds.json
 
-# Generated figures
-eval/figures/*.png
+# Enforcement blocklist written by the detector at runtime
+blocked.json
+blocked.json.tmp

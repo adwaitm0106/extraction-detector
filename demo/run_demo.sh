@@ -16,6 +16,8 @@ BASE="http://127.0.0.1:${PORT}"
 LOG="$ROOT/data/logs/requests.jsonl"
 CALIB="$ROOT/data/logs/benign_calib.jsonl"
 THRESHOLDS="$ROOT/thresholds.json"
+BLOCKLIST="$ROOT/blocked.json"
+ATTACKER_OUT="${TMPDIR:-/tmp}/demo_attacker_out.txt"
 SKIP_CALIB=0
 [ "${1:-}" = "--skip-calib" ] && SKIP_CALIB=1
 
@@ -38,6 +40,8 @@ cleanup() {
     fi
   done
   wait 2>/dev/null || true
+  # A key throttled in a demo must not stay throttled for the next person.
+  rm -f "$BLOCKLIST"
   echo "${DIM}done.${OFF}"
 }
 trap cleanup EXIT INT TERM
@@ -60,7 +64,7 @@ watch_inline() {
     if [ -f "$LOG" ]; then
       local json
       json="$("$PY" "$ROOT/detector/score.py" --log "$LOG" \
-              --thresholds "$THRESHOLDS" --json 2>/dev/null || true)"
+              --thresholds "$THRESHOLDS" --json --enforce "$BLOCKLIST" 2>/dev/null || true)"
       if [ -n "$json" ]; then
         while IFS=$'\t' read -r key flags nreq sigs; do
           [ -z "${key:-}" ] && continue
@@ -68,7 +72,9 @@ watch_inline() {
             ANNOUNCED[$key]="$sigs"
             printf '\n  %s[ALERT %s] EXTRACTION SUSPECTED  api_key=%s  flags=%s/10  requests=%s%s\n' \
               "$RED" "$(date +%H:%M:%S)" "$key" "$flags" "$nreq" "$OFF"
-            printf '      %ssignals: %s%s\n\n' "$RED" "$sigs" "$OFF"
+            printf '      %ssignals: %s%s\n' "$RED" "$sigs" "$OFF"
+            printf '  %s[BLOCK %s] api_key=%s now gets HTTP 429 on every request%s\n\n' \
+              "$YEL" "$(date +%H:%M:%S)" "$key" "$OFF"
           fi
         done < <(printf '%s' "$json" | "$PY" -c '
 import json, sys
@@ -153,6 +159,8 @@ else
   "$PY" detector/calibrate.py --log "$CALIB" --out "$THRESHOLDS" | head -1
 fi
 rm -f "$LOG"
+# A stale blocklist would 429 the attacker from its first request and prove nothing.
+rm -f "$BLOCKLIST" "$ATTACKER_OUT"
 
 banner "PHASE 1: Normal traffic - watch the console" "$GRN"
 echo "  Two ordinary customers are now querying the API."
@@ -169,14 +177,28 @@ banner "PHASE 2: Attacker starts now" "$RED"
 echo "  Same rate as the customers above. Poisson-spaced, so the"
 echo "  timing looks human too. The only difference is WHAT it asks:"
 echo "  systematic probes around the model's decision boundary."
-printf '\n  %sWatch for the ALERT line.%s\n\n' "$RED" "$OFF"
-track "$PY" traffic/generate.py --profile boundary --n 40 --rate 1.5 \
-  --attacker-pacing poisson --api-key "extraction-attacker" --seed 303
-watch_inline 32
+printf '\n  %sWatch for the ALERT line, then the BLOCK line. After the block,%s\n' "$RED" "$OFF"
+printf '  %severy further request from that key is answered with HTTP 429.%s\n\n' "$RED" "$OFF"
+# Output captured so the attacker's own status-code tally can be shown: the
+# cleanest proof that enforcement actually happened.
+"$PY" traffic/generate.py --profile boundary --n 60 --rate 1.5 \
+  --attacker-pacing poisson --api-key "extraction-attacker" --seed 303 \
+  >"$ATTACKER_OUT" 2>&1 &
+PIDS+=($!)
+watch_inline 45
+echo
+printf '  %sWhat the attacker saw from its side:%s\n' "$YEL" "$OFF"
+grep -E "sent |status codes" "$ATTACKER_OUT" 2>/dev/null | sed 's/^/    /'
+printf '  %s(429 = throttled by the detector; 200 = got through before the block)%s\n' "$DIM" "$OFF"
 
 banner "RESULT" "$MAG"
 "$PY" detector/score.py --log "$LOG" --thresholds "$THRESHOLDS"
 echo
+if [ -f "$BLOCKLIST" ]; then
+  printf '  %sblocked.json (what the API is enforcing right now):%s\n' "$YEL" "$OFF"
+  sed 's/^/    /' "$BLOCKLIST"
+  echo
+fi
 "$PY" eval/evaluate.py --log "$LOG" --thresholds "$THRESHOLDS" \
   --attack-prefix extraction-
 banner "DEMO COMPLETE" "$MAG"

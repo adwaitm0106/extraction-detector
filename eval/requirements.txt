@@ -1,0 +1,2 @@
+# Only needed for eval/plot.py. The detector itself is standard library.
+matplotlib==3.11.1

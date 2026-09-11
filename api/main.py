@@ -17,6 +17,7 @@ from starlette.concurrency import run_in_threadpool
 
 MODEL_NAME = "distilbert-base-uncased-finetuned-sst-2-english"
 LOG_PATH = os.environ.get("LOG_PATH", "data/logs/requests.jsonl")
+BLOCKLIST_PATH = os.environ.get("BLOCKLIST_PATH", "blocked.json")
 MAX_INPUT_CHARS = 2000
 
 # Module state. The pipeline is heavy to build, so it is created once at
@@ -62,6 +63,29 @@ def _log(record: dict) -> None:
         os.fsync(fh.fileno())
 
 
+# --- Enforcement. The detector writes flagged keys to a JSON file; it is
+# --- re-read only when its mtime changes, so the per-request cost is one
+# --- stat(). A missing or unreadable file means nobody is blocked: the API must
+# --- keep serving even when the detector is not running.
+_BLOCK_CACHE = {"mtime": None, "keys": {}}
+
+
+def _blocked(api_key: str):
+    try:
+        mtime = os.stat(BLOCKLIST_PATH).st_mtime
+    except OSError:
+        _BLOCK_CACHE["mtime"], _BLOCK_CACHE["keys"] = None, {}
+        return None
+    if mtime != _BLOCK_CACHE["mtime"]:
+        try:
+            with open(BLOCKLIST_PATH, encoding="utf-8") as fh:
+                _BLOCK_CACHE["keys"] = json.load(fh).get("blocked", {})
+            _BLOCK_CACHE["mtime"] = mtime
+        except (OSError, ValueError):
+            return None  # half-written; keep the previous view
+    return _BLOCK_CACHE["keys"].get(api_key)
+
+
 # --- Predict. Body is parsed by hand so auth is checked before validation and
 # --- malformed JSON returns 422 rather than a framework stack trace.
 @app.post("/predict")
@@ -69,6 +93,11 @@ async def predict(request: Request):
     api_key = (request.headers.get("X-API-Key") or "").strip()
     if not api_key:
         return _error(401, "missing or empty X-API-Key header")
+
+    block = _blocked(api_key)
+    if block is not None:
+        return _error(429, "api key throttled: suspected model extraction",
+                      why=block.get("why", []))
 
     raw = await _read_body(request)
     if raw is None:
