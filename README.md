@@ -40,7 +40,7 @@ traffic/    fake traffic: normal customers and several kinds of attacker
 detector/   detection - features, calibration, scoring, enforcement, dashboard
 eval/       measuring the detector, the stolen-copy experiment, and the charts
 demo/       one script that runs the whole story end to end, plus a
-            terminal walkthrough and a video script
+            stage-by-stage walkthrough of what it prints
 ```
 
 ## Run it yourself
@@ -102,7 +102,7 @@ If Phase 1 stays quiet and Phase 2 alerts and blocks, it's working.
 `demo/terminal_walkthrough.md` has the real output from a full run, stage by
 stage, with a note on what each stage proves. Useful if you want to see what
 should happen before you run it, or if something looks different on your
-machine.
+machine. `demo/screenshots/` has the same thing rendered as images.
 
 ### Checking it by hand
 
@@ -483,7 +483,3 @@ percentages are not.
 **Blocking is blunt.** Once flagged, a key gets 429 on everything until the
 blocklist is cleared. There's no appeal, no cooldown, no partial throttle. Fine
 for a demo, not something you'd ship as-is.
-
-## Team
-
-Adwait M. (https://github.com/adwaitm0106)
