@@ -1,5 +1,7 @@
 # Extraction Detector
 
+[![tests](https://github.com/adwaitm0106/extraction-detector/actions/workflows/tests.yml/badge.svg)](https://github.com/adwaitm0106/extraction-detector/actions/workflows/tests.yml)
+
 Catching people who try to steal your ML model by asking it a lot of questions.
 
 ## What this is about
@@ -42,6 +44,7 @@ detector/   detection - features, calibration, scoring, enforcement, dashboard
 eval/       measuring the detector, the stolen-copy experiment, and the charts
 demo/       one script that runs the whole story end to end, plus a
             stage-by-stage walkthrough of what it prints
+tests/      the automated test suite, run on every push by GitHub Actions
 ```
 
 ## Run it yourself
@@ -221,6 +224,24 @@ There's a web dashboard too:
 Then open <http://127.0.0.1:8050>. It shows every client, whether it's flagged,
 and which signals fired. It only reads the log, so it's safe to leave running
 during an experiment.
+
+### Automated tests
+
+There's a suite of 52 tests that runs on every push through GitHub Actions, on
+Python 3.11 and 3.12. It covers the ten signals, calibration and the flag rule,
+the blocklist, the corpus pools, the defences, and the whole API: auth,
+validation, logging, blocking, budgets and response modes.
+
+It doesn't need torch or the model download. The API tests run against a tiny
+stand-in model (`MODEL_STUB=1`), so the whole suite finishes in about a second.
+
+```bash
+.venv/Scripts/python.exe -m pip install -r requirements-dev.txt
+.venv/Scripts/python.exe -m pytest
+```
+
+The stand-in model exists only for testing. It isn't a sentiment model, and none
+of the results in this README come from it.
 
 ## Things that will trip you up
 
