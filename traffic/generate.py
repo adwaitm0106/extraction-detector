@@ -13,6 +13,12 @@ Profiles
     natural     Natural-looking sentences, enumerated systematically. Designed
                 to pass per-key content checks: the attack is visible only in
                 aggregate coverage, not in any single query.
+    real-benign   Real sentences (Reddit, tweets, reviews) drawn at random
+                  from a public corpus, at human pace. See real_corpus.py.
+    real-harvest  An attacker walking a real corpus without repeats: the
+                  surrogate-dataset collection a real extraction looks like.
+    real-probe    An attacker making one-token edits to a few real sentences
+                  to find where the label flips.
     mixed       Several benign clients plus one attacker, run concurrently --
                 the realistic case, where the attacker must be picked out of
                 normal traffic rather than observed in isolation.
@@ -47,7 +53,12 @@ from corpus import (  # noqa: E402
     sweep_query,
 )
 
-ATTACK_PROFILES = ("random", "boundary", "sweep", "natural")
+from real_corpus import available_sources, load_pool, perturb_query  # noqa: E402
+
+ATTACK_PROFILES = ("random", "boundary", "sweep", "natural",
+                   "real-harvest", "real-probe")
+BENIGN_PROFILES = ("benign", "real-benign")
+REAL_PROFILES = ("real-benign", "real-harvest", "real-probe")
 
 
 # --- One HTTP call. Failures are counted, never raised: a generator that dies
@@ -73,7 +84,7 @@ def send(base, api_key, text, timeout=30):
 class Client:
     def __init__(self, base, api_key, profile, seed, rate, n=None,
                  duration=None, burst=False, jitter=0.0, pacing="constant",
-                 index_offset=0, index_step=1):
+                 index_offset=0, index_step=1, source=None, pool=None):
         self.base, self.api_key, self.profile = base, api_key, profile
         self.rng = random.Random(seed)
         self.rate, self.n, self.duration, self.burst = rate, n, duration, burst
@@ -90,6 +101,10 @@ class Client:
         # grid at offset r, step K, so the members between them cover exactly
         # the same ground one client would have covered alone.
         self.index_offset, self.index_step = index_offset, index_step
+        # Real-text profiles draw from a cached public corpus, loaded on first
+        # use so template profiles never need the corpora to exist.
+        self.source, self.pool = source, pool
+        self._texts = self._seeds = self._vocab = None
         self.codes = Counter()
         self.sent = 0
         self._i = 0
@@ -110,6 +125,43 @@ class Client:
             return sweep_query(self.index_offset + self._i * self.index_step)
         if self.profile == "natural":
             return natural_query(self.index_offset + self._i * self.index_step)
+        if self.profile in REAL_PROFILES:
+            return self._real_query()
+        raise ValueError("unknown profile " + self.profile)
+
+    def _real_texts(self):
+        if self._texts is None:
+            pool = "attack" if self.profile in ATTACK_PROFILES else (self.pool or "eval")
+            sources = (available_sources() if self.source in (None, "mixed")
+                       else [self.source])
+            if not sources:
+                raise FileNotFoundError(
+                    "No corpora built yet. Run: python traffic/real_corpus.py")
+            texts = []
+            for src in sources:
+                texts.extend(load_pool(src, pool))
+            # Harvest members of a split campaign must agree on one ordering so
+            # their partitions tile the corpus; everyone else shuffles freely.
+            order = random.Random(4242) if self.profile == "real-harvest" else self.rng
+            order.shuffle(texts)
+            self._texts = texts
+        return self._texts
+
+    def _real_query(self):
+        texts = self._real_texts()
+        if self.profile == "real-benign":
+            # Same re-ask habit as the template customers.
+            if self._i and self.rng.random() < 0.2:
+                return self._last
+            self._last = self.rng.choice(texts)
+            return self._last
+        if self.profile == "real-harvest":
+            return texts[(self.index_offset + self._i * self.index_step) % len(texts)]
+        if self.profile == "real-probe":
+            if self._seeds is None:
+                self._seeds = texts[:5]
+                self._vocab = [w for t in texts[:400] for w in t.split()]
+            return perturb_query(self.rng.choice(self._seeds), self.rng, self._vocab)
         raise ValueError("unknown profile " + self.profile)
 
     def run(self, stop_event):
@@ -165,7 +217,8 @@ def split_campaign(args):
                else args.attacker_profile,
                args.seed + 7000 + r, rate=per_rate, n=per_n,
                duration=args.duration, jitter=args.attacker_jitter,
-               pacing=args.attacker_pacing, index_offset=r, index_step=k)
+               pacing=args.attacker_pacing, index_offset=r, index_step=k,
+               source=args.source)
         for r in range(k)
     ]
 
@@ -185,19 +238,21 @@ def build_clients(args):
             Client(args.base_url, args.attacker_key, args.attacker_profile,
                    args.seed + 999, rate=args.attacker_rate,
                    duration=args.duration, n=args.attacker_n or args.n,
-                   jitter=args.attacker_jitter, pacing=args.attacker_pacing)
+                   jitter=args.attacker_jitter, pacing=args.attacker_pacing,
+                   source=args.source)
         )
         return clients
 
     default_key = args.attacker_key if args.profile in ATTACK_PROFILES else "user-00"
     key = args.api_key or default_key
-    default_rate = 1.0 if args.profile == "benign" else 20.0
+    default_rate = 1.0 if args.profile in BENIGN_PROFILES else 20.0
     is_attack = args.profile in ATTACK_PROFILES
     return [Client(args.base_url, key, args.profile, args.seed,
                    rate=args.rate or default_rate, n=args.n,
-                   duration=args.duration, burst=args.profile == "benign",
+                   duration=args.duration, burst=args.profile in BENIGN_PROFILES,
                    jitter=args.attacker_jitter if is_attack else args.jitter,
-                   pacing=args.attacker_pacing if is_attack else args.pacing)]
+                   pacing=args.attacker_pacing if is_attack else args.pacing,
+                   source=args.source, pool=args.pool)]
 
 
 def main():
@@ -208,7 +263,7 @@ def main():
     p.add_argument("--base-url", default="http://127.0.0.1:8000")
     p.add_argument("--profile", default="benign",
                    choices=["benign", "random", "boundary", "sweep", "natural",
-                            "mixed"])
+                            "real-benign", "real-harvest", "real-probe", "mixed"])
     p.add_argument("--n", type=int, help="requests per client")
     p.add_argument("--attacker-n", type=int,
                    help="override --n for the attacker in a mixed run")
@@ -234,6 +289,12 @@ def main():
     p.add_argument("--split", type=int, default=1,
                    help="divide the attack across this many API keys; each "
                         "member sends n/K queries at rate/K")
+    p.add_argument("--source", default="mixed",
+                   choices=["mixed", "reddit", "twitter", "yelp", "amazon", "imdb"],
+                   help="real-text corpus for real-* profiles (mixed = all built)")
+    p.add_argument("--pool", default="eval", choices=["calib", "eval"],
+                   help="benign pool: calib to build a baseline, eval to test; "
+                        "attackers always draw from the separate attack pool")
     p.add_argument("--seed", type=int, default=1)
     args = p.parse_args()
 

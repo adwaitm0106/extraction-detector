@@ -317,7 +317,90 @@ you test it on. We didn't:
 - The two decision numbers (3.5 standard deviations, at least 2 signals) were
   picked up front from basic statistics, not tuned until the results looked good.
 
-## Results
+## Results on real text
+
+The synthetic results further down look great, and that's the problem. The fake
+customers and the fake attackers came out of the same template generator, so
+they were easy to tell apart. So the whole evaluation was rerun on real text.
+
+**The data.** 30,000 real texts from five public research datasets, 6,000 from
+each: Reddit comments (`go_emotions`), tweets (`tweet_eval`), Yelp reviews,
+Amazon reviews and IMDB reviews. Nothing was scraped. Every text goes into
+exactly one of three pools, decided by a hash of its content: 40% for building
+the baseline, 40% for testing, and 20% that only attackers may use. Checked
+after building: not a single text is shared between any two pools, across all
+five sources.
+
+**The setup.** The baseline was learned from 8 real customers, two each sending
+Reddit comments, tweets, Yelp reviews and Amazon reviews. Then 10 new customers
+were tested: two per source again, plus two sending IMDB reviews, a kind of
+text the baseline had never seen. Attackers ran at about one request a second
+with human-like timing and only used the attack pool. 1,050 requests in total.
+The text is real. The timing still comes from the generator's model of how
+people behave, which hasn't been checked against real API logs.
+
+| Client | What it did | Caught? |
+|---|---|---|
+| `atk-probe-twitter` | small edits to a few real tweets, hunting the decision boundary | yes (3 signals) |
+| `atk-probe-yelp` | the same thing on real Yelp reviews | yes (2 signals) |
+| `atk-template-boundary` | the old synthetic attacker, for reference | yes (2 signals) |
+| `atk-harvest-yelp` | walked through real Yelp reviews, never repeating | **no** |
+| `atk-harvest-mixed` | walked through all five sources, never repeating | **no** |
+| `atk-harvest-split-a` to `e` | one harvest split across 5 keys | **no, 0 of 5** |
+| 8 customers, seen sources | real Reddit, tweet, Yelp and Amazon traffic | 0 false alarms |
+| 2 customers, unseen source | real IMDB traffic | 0 false alarms |
+
+**3 of 10 attackers caught. 0 of 10 real customers wrongly flagged.**
+
+That's a far worse detection number than the synthetic 10 of 10, and it's the
+more useful one. Here's why the harvesters got through. These are the median
+values for each group, next to the centre of the baseline:
+
+| Signal | Baseline | Customers | Probers | Harvesters |
+|---|---|---|---|---|
+| near-duplicate rate | 0.350 | 0.383 | **1.000** | 0.000 |
+| vocabulary richness (`herdan_c`) | 0.892 | 0.886 | **0.710** | 0.904 |
+| exact repeat rate | 0.200 | 0.200 | 0.033 | 0.000 |
+| word entropy | 0.916 | 0.922 | 0.946 | 0.891 |
+| 10th percentile confidence | 0.938 | 0.946 | 0.981 | 0.941 |
+
+Probers stand out enormously. Nearly every query is a near-copy of another, and
+they reuse a tiny vocabulary. Harvesters don't stand out at all. Their
+vocabulary, word choice and model confidence sit right where real customers
+are, because a harvester sending random real Yelp reviews is doing exactly what
+a real Yelp analytics customer does. The one difference is that it never
+repeats a query, and that only reached z=2.8, under the 3.5 cutoff.
+
+I didn't lower the cutoff to catch them, for two reasons. It would mean tuning
+the rule to this result, which is the exact thing the design avoids. And the
+"never repeats" gap isn't real evidence anyway. It only exists because the
+customer generator assumes people re-ask 20% of the time, and nobody has
+measured that.
+
+So the honest conclusion: **looking at the shape of one key's queries catches
+attackers who probe the model, but it cannot catch passive harvesting of
+normal-looking text.** That attack needs a different kind of defence, such as
+returning labels without confidence scores, per-account query budgets, or
+looking for coverage patterns across many accounts at once.
+
+Run it yourself. The API needs to be running for the experiment step.
+
+```bash
+.venv/Scripts/python.exe -m pip install -r traffic/requirements.txt
+.venv/Scripts/python.exe traffic/real_corpus.py
+.venv/Scripts/python.exe eval/run_real_experiment.py
+.venv/Scripts/python.exe eval/diagnose_real.py
+```
+
+Building the corpora downloads the datasets and took about two and a half
+minutes here. The experiment took about five and a half. Results land in
+`eval/results/`.
+
+## Results on synthetic traffic
+
+These are the earlier numbers, from template-generated customers and attackers.
+Read them next to the real-text results above: synthetic attackers turned out
+to be far easier to separate than real ones.
 
 1,200 requests from 25 clients: 15 normal customers and 10 attacker keys. The
 baseline was learned from 8 completely separate normal clients with deliberately
@@ -432,7 +515,9 @@ Run it yourself with the API up and a baseline calibrated:
 
 Being honest, because most of this isn't fixed.
 
-**The "normal" traffic is still fake.** It's more varied than it was (15
+**Passive harvesting of real text isn't detected.** On real data, 0 of 7 harvester keys were caught (see Results on real text). The detector is good at spotting someone probing the model and bad at spotting someone who just sends a lot of ordinary-looking text. That's the biggest limit of the whole approach.
+
+**The synthetic customers are still fake.** It's more varied than it was (15
 clients, different speeds, some bursty, some steady, some machine-paced), but it
 all comes from one template generator. Real users are messier in ways this
 can't show. Treat 1 false alarm in 15 as a rough indication, not a rate you can

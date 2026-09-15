@@ -16,3 +16,6 @@ blocked.json.tmp
 
 # Local scratch copies of baselines
 data/logs/*.json
+
+# Real-text corpora built from public datasets; rebuild locally, never commit
+data/corpora/
