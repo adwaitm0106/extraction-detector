@@ -34,6 +34,22 @@ the detector never just says "attacker". It prints which signals fired, how far
 off normal they were, and a plain-English reason for each one. And it won't
 flag anyone on a single signal alone.
 
+## At a glance
+
+- **It catches attackers who probe the model.** On real text from five public
+  datasets it caught every boundary-probing attacker (3 of 3) and wrongly
+  flagged none of 10 real customers, including two sending a kind of text it
+  had never seen.
+- **It can't catch passive harvesting, and the repo shows why.** A harvester
+  sending ordinary text looks statistically the same as a real customer, so 0
+  of 7 harvesting keys were caught.
+- **So two defences were added and measured.** Hiding the model's confidence
+  made no difference, because this model is almost always sure of itself. A
+  query budget of 50 per key held a one-key harvester's stolen copy to 55.9%
+  agreement, barely above guessing, but with 20 keys it climbed back to 69.7%.
+- **Everything is reproducible.** One command rebuilds the data, one reruns each
+  experiment, and 52 tests run on every push.
+
 ## What's in here
 
 ```
@@ -374,6 +390,8 @@ people behave, which hasn't been checked against real API logs.
 
 **3 of 10 attackers caught. 0 of 10 real customers wrongly flagged.**
 
+![Signals fired per client on real text](eval/figures/real_flags_per_client.png)
+
 That's a far worse detection number than the synthetic 10 of 10, and it's the
 more useful one. Here's why the harvesters got through. These are the median
 values for each group, next to the centre of the baseline:
@@ -392,6 +410,13 @@ vocabulary, word choice and model confidence sit right where real customers
 are, because a harvester sending random real Yelp reviews is doing exactly what
 a real Yelp analytics customer does. The one difference is that it never
 repeats a query, and that only reached z=2.8, under the 3.5 cutoff.
+
+![Where each group lands on four signals](eval/figures/real_signal_separation.png)
+
+Each dot is one 30-request window from one client. The shaded band is the zone
+where a signal doesn't fire. Probers land well outside it on near-duplicates and
+vocabulary. Harvesters sit inside it on every panel, right alongside the
+customers. Confidence doesn't separate anyone on real text.
 
 I didn't lower the cutoff to catch them, for two reasons. It would mean tuning
 the rule to this result, which is the exact thing the design avoids. And the
