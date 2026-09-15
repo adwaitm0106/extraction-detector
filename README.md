@@ -35,7 +35,8 @@ flag anyone on a single signal alone.
 ## What's in here
 
 ```
-api/        the "victim" API - a sentiment model that logs every request
+api/        the "victim" API - a sentiment model that logs every request,
+            with optional confidence hiding and per-key query budgets
 traffic/    fake traffic: normal customers and several kinds of attacker
 detector/   detection - features, calibration, scoring, enforcement, dashboard
 eval/       measuring the detector, the stolen-copy experiment, and the charts
@@ -396,6 +397,93 @@ Building the corpora downloads the datasets and took about two and a half
 minutes here. The experiment took about five and a half. Results land in
 `eval/results/`.
 
+## Defending against harvesting
+
+The detector can't see a harvester, so the next question is whether anything
+else stops one. Two defences were added to the API and measured against a
+real-text harvester:
+
+- **Hide the confidence.** `RESPONSE_MODE=label` returns only the label, and
+  `RESPONSE_MODE=rounded` rounds the confidence to one decimal place.
+- **Cap each key.** `QUERY_BUDGET=50` serves 50 requests per API key and
+  answers the rest with HTTP 429. Malformed requests don't count against it.
+
+Both are off by default, and both are set as environment variables when you
+start the API.
+
+To measure them, the attacker was played for real. 2,000 real texts from the
+attack pool were sent to the victim, the answers saved, and a stolen copy
+trained on them (TF-IDF plus logistic regression, weighted by the victim's
+confidence whenever the response includes one). The copy is then scored on
+1,000 held-out real texts it never saw, by how often it agrees with the
+victim. Always guessing the most common label scores 54.1%, so that's the
+floor. Every defence is replayed on the same saved answers, through the same
+function the API calls, so they're all compared on identical data.
+
+**Hiding the confidence does nothing here.**
+
+| What the API returns | Stolen copy agrees with victim |
+|---|---|
+| label and confidence | 72.5% |
+| label and rounded confidence | 72.5% |
+| label only | 72.6% |
+
+This model is almost always more than 99% sure of itself, so its confidence
+carries almost no extra information for the attacker. On a model that's often
+unsure it might matter more. On this one it doesn't.
+
+**Budgets work, until the attacker gets more keys.**
+
+| Pairs the attacker collected | Stolen copy agrees with victim |
+|---|---|
+| 25 | 53.0% |
+| 50 | 55.9% |
+| 100 | 59.6% |
+| 400 | 65.1% |
+| 2,000 | 72.5% |
+
+A budget of 50 per key holds a one-key harvester to 55.9%, barely above
+guessing. But the budget is per key:
+
+| Budget per key | Keys | Stolen copy agrees with victim |
+|---|---|---|
+| 50 | 1 | 55.9% |
+| 50 | 5 | 64.0% |
+| 50 | 20 | 69.7% |
+
+With 20 keys the attacker gets back most of what an unlimited attacker gets
+(69.7% against 72.5%). So a budget only protects the model if keys are hard to
+get, meaning tied to a verified account or a payment method. That's a business
+decision, not a code change.
+
+![Stolen copy agreement against the number of pairs harvested](eval/figures/defence_budget_fidelity.png)
+
+Putting the whole project together:
+
+| Attacker | What stops it |
+|---|---|
+| Probes the model's decision boundary | the detector: 3 of 3 caught, 0 false alarms on real customers |
+| Harvests ordinary text with one key | a per-key query budget |
+| Harvests ordinary text with many cheap keys | nothing in this repo; it needs keys tied to real identities |
+
+Two honest caveats. The stolen copy is a simple TF-IDF model, and a stronger
+attacker (a fine-tuned transformer, say) would get a better copy out of the
+same answers, so read these percentages as a lower bound on what an attacker
+can do. And these real-text copies agree with the victim far less than the
+copies in the synthetic experiment further down (72.5% here against 98.7%
+there), which is one more sign the synthetic numbers were flattering.
+
+Run it yourself. The API needs to be running for the harvest step.
+
+```bash
+.venv/Scripts/python.exe -m pip install -r eval/requirements.txt
+.venv/Scripts/python.exe eval/harvest_real.py
+.venv/Scripts/python.exe eval/defend_real.py
+```
+
+Harvesting took about four and a half minutes here. The full tables, including
+a copy trained on labels alone, are in `eval/results/defences_real.md`.
+
 ## Results on synthetic traffic
 
 These are the earlier numbers, from template-generated customers and attackers.
@@ -515,7 +603,7 @@ Run it yourself with the API up and a baseline calibrated:
 
 Being honest, because most of this isn't fixed.
 
-**Passive harvesting of real text isn't detected.** On real data, 0 of 7 harvester keys were caught (see Results on real text). The detector is good at spotting someone probing the model and bad at spotting someone who just sends a lot of ordinary-looking text. That's the biggest limit of the whole approach.
+**Passive harvesting of real text isn't detected.** On real data, 0 of 7 harvester keys were caught (see Results on real text). The detector is good at spotting someone probing the model and bad at spotting someone who just sends a lot of ordinary-looking text. That's the biggest limit of the whole approach. A per-key query budget helps against a harvester with one key, but one with many cheap keys still gets most of the model (see Defending against harvesting).
 
 **The synthetic customers are still fake.** It's more varied than it was (15
 clients, different speeds, some bursty, some steady, some machine-paced), but it
@@ -559,7 +647,7 @@ learning, but it doesn't remove it. An attacker pulling real sentences from a
 real corpus at human speed hasn't been tried, and the margins on our closest
 cases were thin enough that it might get through.
 
-**The stolen-copy numbers are optimistic for the attacker.** The held-out set
+**The synthetic stolen-copy numbers are optimistic for the attacker.** The held-out set
 is built from the same templates the attacker queries with, and the student is
 deliberately tiny. On real text, 30 pairs would buy the attacker much less than
 87%. The tenfold gap in error rate is the honest takeaway; the absolute

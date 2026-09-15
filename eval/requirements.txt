@@ -1,2 +1,5 @@
-# Only needed for eval/plot.py. The detector itself is standard library.
+# Only needed for the evaluation scripts. The detector itself is standard library.
+#   matplotlib    charts (eval/plot.py, eval/steal.py, eval/defend_real.py)
+#   scikit-learn  the stolen-copy student in eval/defend_real.py
 matplotlib==3.11.1
+scikit-learn==1.9.1

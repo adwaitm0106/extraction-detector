@@ -2,10 +2,18 @@
 
 Exposes a sentiment classifier and logs every successful query so that a
 downstream detector can look for extraction-shaped traffic patterns.
+
+Environment:
+    LOG_PATH         request log (default data/logs/requests.jsonl)
+    BLOCKLIST_PATH   keys the detector has flagged (default blocked.json)
+    RESPONSE_MODE    full | label | rounded   (see api/defences.py)
+    QUERY_BUDGET     requests per key, 0 = unlimited
+    MODEL_STUB       set to 1 to skip the real model, for tests and CI
 """
 
 import json
 import os
+import sys
 import threading
 import time
 from collections import defaultdict
@@ -15,10 +23,23 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from starlette.concurrency import run_in_threadpool
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from defences import RESPONSE_MODES, QueryBudget, shape_response  # noqa: E402
+from stub import StubPipeline  # noqa: E402
+
 MODEL_NAME = "distilbert-base-uncased-finetuned-sst-2-english"
 LOG_PATH = os.environ.get("LOG_PATH", "data/logs/requests.jsonl")
 BLOCKLIST_PATH = os.environ.get("BLOCKLIST_PATH", "blocked.json")
 MAX_INPUT_CHARS = 2000
+
+# Response-side defences. A bad value fails at startup rather than on the
+# first request, so a misconfigured deployment never serves at all.
+RESPONSE_MODE = os.environ.get("RESPONSE_MODE", "full")
+if RESPONSE_MODE not in RESPONSE_MODES:
+    raise RuntimeError("RESPONSE_MODE must be one of %s, got %r"
+                       % (", ".join(RESPONSE_MODES), RESPONSE_MODE))
+_BUDGET = QueryBudget(os.environ.get("QUERY_BUDGET", "0"))
 
 # Module state. The pipeline is heavy to build, so it is created once at
 # startup and shared. _MODEL_LOCK serialises inference and log writes because
@@ -32,9 +53,12 @@ _LOG_LOCK = threading.Lock()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _MODEL
-    from transformers import pipeline
+    if os.environ.get("MODEL_STUB") == "1":
+        _MODEL = StubPipeline()
+    else:
+        from transformers import pipeline
 
-    _MODEL = pipeline("sentiment-analysis", model=MODEL_NAME, device=-1)
+        _MODEL = pipeline("sentiment-analysis", model=MODEL_NAME, device=-1)
     os.makedirs(os.path.dirname(LOG_PATH) or ".", exist_ok=True)
     yield
     _MODEL = None
@@ -116,11 +140,18 @@ async def predict(request: Request):
     if _MODEL is None:
         return _error(500, "model is not loaded")
 
+    # Checked after validation, so a malformed request never spends budget.
+    if not _BUDGET.allow(api_key):
+        return _error(429, "query budget exhausted for this api key",
+                      budget=_BUDGET.limit)
+
     started = time.perf_counter()
     result = (await run_in_threadpool(_infer, text))[0]
     latency_ms = int((time.perf_counter() - started) * 1000)
 
     label, confidence = str(result["label"]), float(result["score"])
+    # The log keeps the full confidence whatever the client is shown: the
+    # detector needs it, and it never leaves the server.
     await run_in_threadpool(
         _log,
         {
@@ -132,7 +163,7 @@ async def predict(request: Request):
             "latency_ms": latency_ms,
         },
     )
-    return {"label": label, "confidence": confidence}
+    return shape_response(label, confidence, RESPONSE_MODE)
 
 
 def _infer(text: str):
