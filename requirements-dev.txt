@@ -1,0 +1,5 @@
+# Everything the test suite needs. Deliberately no torch or transformers: the
+# API tests run against a stub model (MODEL_STUB=1), so the suite stays fast.
+fastapi==0.141.1
+httpx==0.28.1
+pytest==9.1.1
