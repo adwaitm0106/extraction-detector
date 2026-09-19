@@ -197,7 +197,7 @@ def health():
 def stats():
     counts, totals = defaultdict(int), defaultdict(float)
     if os.path.exists(LOG_PATH):
-        with open(LOG_PATH, "r", encoding="utf-8") as fh:
+        with open(LOG_PATH, encoding="utf-8") as fh:
             for line in fh:
                 try:
                     row = json.loads(line)

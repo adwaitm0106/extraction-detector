@@ -209,7 +209,7 @@ def main():
     all_texts = {}
     for name in args.sources:
         if os.path.exists(corpus_path(name)) and not args.force:
-            rows = [json.loads(l) for l in open(corpus_path(name), encoding="utf-8") if l.strip()]
+            rows = [json.loads(ln) for ln in open(corpus_path(name), encoding="utf-8") if ln.strip()]
             scanned, note = "cached", ""
         else:
             t0 = time.time()

@@ -73,7 +73,7 @@ def colour_for(line):
 
 
 def render(title, lines, path, font, title_font):
-    width_chars = max([len(l) for l in lines] + [len(title)])
+    width_chars = max([len(ln) for ln in lines] + [len(title)])
     ascent, descent = font.getmetrics()
     line_h = ascent + descent + LINE_GAP
     char_w = font.getlength("M")

@@ -45,7 +45,6 @@ from corpus import benign_query, natural_query  # noqa: E402
 from features import group_by_key, load_log  # noqa: E402
 from score import score_client, write_blocklist  # noqa: E402
 
-
 # --- Talking to the victim ---------------------------------------------------
 
 def call(base, key, text, timeout=30):
@@ -181,8 +180,6 @@ def main():
     if os.path.exists(args.blocklist):
         os.remove(args.blocklist)  # a stale block would end the harvest at query 1
 
-    rng = random.Random(args.seed)
-
     # --- Held-out set: sentences neither side trains on, labelled by the victim.
     print("labelling %d held-out sentences with the victim..." % args.heldout)
     ho_rng = random.Random(args.seed + 1000)
@@ -196,7 +193,7 @@ def main():
         status, label = call(args.base_url, "eval-oracle", text)
         if status == 200 and label:
             heldout.append((text, label))
-    majority = Counter(l for _, l in heldout).most_common(1)[0][1] / len(heldout)
+    majority = Counter(lbl for _, lbl in heldout).most_common(1)[0][1] / len(heldout)
     print("  done. always-guess-majority baseline: %.1f%% agreement\n" % (100 * majority))
 
     # --- Run 1: nobody watching. ---

@@ -3,7 +3,6 @@
 import random
 
 import pytest
-
 from features import (
     FEATURE_NAMES,
     PROPORTION_FEATURES,

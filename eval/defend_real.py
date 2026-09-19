@@ -65,7 +65,7 @@ def train(texts, labels, confs, soft):
     from sklearn.linear_model import LogisticRegression
 
     rows_t, rows_y, rows_w = [], [], []
-    for t, y, p in zip(texts, labels, confs):
+    for t, y, p in zip(texts, labels, confs, strict=True):
         p = 1.0 if (not soft or p is None) else float(p)
         rows_t.append(t)
         rows_y.append(y)
@@ -88,7 +88,7 @@ def train(texts, labels, confs, soft):
 def fidelity(predict, heldout):
     texts = [r["text"] for r in heldout]
     preds = predict(texts)
-    return sum(p == r["label"] for p, r in zip(preds, heldout)) / len(heldout)
+    return sum(p == r["label"] for p, r in zip(preds, heldout, strict=True)) / len(heldout)
 
 
 def shaped(pairs, mode):
@@ -117,7 +117,7 @@ def main():
         import sklearn  # noqa: F401
     except ImportError:
         raise SystemExit("scikit-learn is not installed. Run:\n"
-                         "  .venv/Scripts/python.exe -m pip install -r eval/requirements.txt")
+                         "  .venv/Scripts/python.exe -m pip install -r eval/requirements.txt") from None
     if not os.path.exists(args.pairs):
         raise SystemExit("No pairs at %s. Run eval/harvest_real.py first." % args.pairs)
 

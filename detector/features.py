@@ -159,7 +159,7 @@ def _iat_burstiness(timestamps):
     ts = sorted(timestamps)
     if len(ts) < 3:
         return 0.0
-    gaps = [b - a for a, b in zip(ts, ts[1:]) if b - a >= 0]
+    gaps = [b - a for a, b in zip(ts, ts[1:], strict=False) if b - a >= 0]
     if len(gaps) < 2:
         return 0.0
     m, s = _mean(gaps), _std(gaps)
@@ -209,7 +209,7 @@ def compute_features(rows, rng=None):
 def load_log(path):
     """Parse a JSONL request log, skipping lines a tail may have caught mid-write."""
     rows = []
-    with open(path, "r", encoding="utf-8") as fh:
+    with open(path, encoding="utf-8") as fh:
         for line in fh:
             line = line.strip()
             if not line:

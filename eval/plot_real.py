@@ -87,7 +87,7 @@ def separation_chart(plt):
 
     fig, axes = plt.subplots(2, 2, figsize=(10, 7))
     jitter = random.Random(1)
-    for ax, (feature, title) in zip(axes.flat, PANELS):
+    for ax, (feature, title) in zip(axes.flat, PANELS, strict=True):
         centre, scale = base[feature]["centre"], base[feature]["scale"]
         band_lo = max(0.0, centre - Z_FLAG * scale)
         band_hi = min(1.0, centre + Z_FLAG * scale)
@@ -157,7 +157,7 @@ def main():
         import matplotlib.pyplot as plt
     except ImportError:
         raise SystemExit("matplotlib is not installed. Run:\n"
-                         "  .venv/Scripts/python.exe -m pip install -r eval/requirements.txt")
+                         "  .venv/Scripts/python.exe -m pip install -r eval/requirements.txt") from None
     os.makedirs(FIGURES, exist_ok=True)
     separation_chart(plt)
     flags_chart(plt)

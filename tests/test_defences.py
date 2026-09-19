@@ -3,7 +3,6 @@
 import threading
 
 import pytest
-
 from defences import RESPONSE_MODES, QueryBudget, shape_response
 
 

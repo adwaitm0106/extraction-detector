@@ -26,7 +26,7 @@ from fastapi.responses import HTMLResponse
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from features import FEATURE_NAMES, group_by_key, load_log  # noqa: E402
+from features import group_by_key, load_log  # noqa: E402
 from score import MIN_FLAGS, Z_FLAG, score_client  # noqa: E402
 
 LOG_PATH = os.environ.get("LOG_PATH", "data/logs/requests.jsonl")

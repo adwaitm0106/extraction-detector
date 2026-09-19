@@ -33,7 +33,6 @@ import subprocess
 import sys
 import time
 import urllib.request
-from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -111,7 +110,7 @@ def main():
             if not json.loads(r.read()).get("model_loaded"):
                 raise SystemExit("API is up but the model has not loaded yet.")
     except OSError as e:
-        raise SystemExit("Cannot reach the API at %s: %s" % (args.base_url, e))
+        raise SystemExit("Cannot reach the API at %s: %s" % (args.base_url, e)) from e
 
     os.makedirs(LOGS, exist_ok=True)
     os.makedirs(RESULTS, exist_ok=True)

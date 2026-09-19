@@ -94,7 +94,7 @@ def main():
             if not json.loads(r.read()).get("model_loaded"):
                 raise SystemExit("API is up but the model has not loaded yet.")
     except OSError as e:
-        raise SystemExit("Cannot reach the API at %s: %s" % (args.base_url, e))
+        raise SystemExit("Cannot reach the API at %s: %s" % (args.base_url, e)) from e
 
     sources = available_sources()
     if not sources:

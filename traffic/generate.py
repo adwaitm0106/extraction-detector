@@ -52,7 +52,6 @@ from corpus import (  # noqa: E402
     random_ood_query,
     sweep_query,
 )
-
 from real_corpus import available_sources, load_pool, perturb_query  # noqa: E402
 
 ATTACK_PROFILES = ("random", "boundary", "sweep", "natural",

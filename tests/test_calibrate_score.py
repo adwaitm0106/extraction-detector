@@ -4,7 +4,6 @@ import json
 import random
 
 import pytest
-
 from calibrate import MIN_SCALE, fit
 from features import FEATURE_NAMES, PROPORTION_FEATURES, compute_features, windows
 from score import EXPLAIN, MIN_FLAGS, score_client, write_blocklist
