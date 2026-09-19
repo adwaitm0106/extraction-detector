@@ -43,10 +43,12 @@ flag anyone on a single signal alone.
 - **It can't catch passive harvesting, and the repo shows why.** A harvester
   sending ordinary text looks statistically the same as a real customer, so 0
   of 7 harvesting keys were caught.
-- **So two defences were added and measured.** Hiding the model's confidence
-  made no difference, because this model is almost always sure of itself. A
-  query budget of 50 per key held a one-key harvester's stolen copy to 55.9%
-  agreement, barely above guessing, but with 20 keys it climbed back to 69.7%.
+- **So two defences were added, then stress-tested against a real attacker.**
+  Hiding the model's confidence made no difference, because this model is
+  almost always sure of itself. A query budget of 50 per key holds a weak
+  (TF-IDF) attacker to 55.9% agreement, barely above guessing, but a real
+  attacker fine-tuning a small pretrained language model on the same 50
+  pairs gets 65.1%, and only needs 200 pairs across 4 keys to reach 81.5%.
 - **Everything is reproducible.** One command rebuilds the data, one reruns each
   experiment, and 52 tests run on every push.
 
@@ -57,7 +59,8 @@ api/        the "victim" API - a sentiment model that logs every request,
             with optional confidence hiding and per-key query budgets
 traffic/    fake traffic: normal customers and several kinds of attacker
 detector/   detection - features, calibration, scoring, enforcement, dashboard
-eval/       measuring the detector, the stolen-copy experiment, and the charts
+eval/       measuring the detector, the stolen-copy and defence experiments
+            (weak and strong attackers), and the charts
 demo/       one script that runs the whole story end to end, plus a
             stage-by-stage walkthrough of what it prints
 tests/      the automated test suite, run on every push by GitHub Actions
@@ -504,21 +507,6 @@ decision, not a code change.
 
 ![Stolen copy agreement against the number of pairs harvested](eval/figures/defence_budget_fidelity.png)
 
-Putting the whole project together:
-
-| Attacker | What stops it |
-|---|---|
-| Probes the model's decision boundary | the detector: 3 of 3 caught, 0 false alarms on real customers |
-| Harvests ordinary text with one key | a per-key query budget |
-| Harvests ordinary text with many cheap keys | nothing in this repo; it needs keys tied to real identities |
-
-Two honest caveats. The stolen copy is a simple TF-IDF model, and a stronger
-attacker (a fine-tuned transformer, say) would get a better copy out of the
-same answers, so read these percentages as a lower bound on what an attacker
-can do. And these real-text copies agree with the victim far less than the
-copies in the synthetic experiment further down (72.5% here against 98.7%
-there), which is one more sign the synthetic numbers were flattering.
-
 Run it yourself. The API needs to be running for the harvest step.
 
 ```bash
@@ -529,6 +517,66 @@ Run it yourself. The API needs to be running for the harvest step.
 
 Harvesting took about four and a half minutes here. The full tables, including
 a copy trained on labels alone, are in `eval/results/defences_real.md`.
+
+### Does the budget hold against a stronger attacker?
+
+Everything above uses TF-IDF plus logistic regression as the attacker's
+student, which is about as weak an attacker as exists. A real attacker
+fine-tunes a pretrained language model instead. So the same harvested pairs
+were replayed once more, this time training `distilbert-base-uncased` (the
+public pretrained weights you'd download from Hugging Face, never the
+victim's own weights) rather than TF-IDF, and the two are compared on
+identical data.
+
+| Pairs harvested | TF-IDF copy (weak attacker) | DistilBERT copy (real attacker) |
+|---|---|---|
+| 50 | 55.9% | 65.1% |
+| 200 | 62.9% | 81.5% |
+| 800 | 69.3% | 85.6% |
+| 2,000 | 72.5% | 86.2% |
+
+![Weak attacker versus a real attacker on the same harvested pairs](eval/figures/defence_budget_fidelity_strong.png)
+
+This changes the conclusion above, and not in the detector's favour. A budget
+of 50 per key does not hold a capable attacker barely above guessing. It
+holds them to 65.1%, and four keys worth of pairs (200 total) already gets
+them to 81.5%, close to the ceiling this attacker ever reaches with the pairs
+available here. A weak attacker needed all 2,000 pairs to get anywhere near
+that.
+
+So the honest version of the budget defence: it slows a weak attacker a lot
+and a capable one only a little. A budget still has some value, since every
+attacker needs some minimum number of pairs no matter how good their student
+is, but the number that actually matters is much smaller than the weak-
+attacker result suggested, and a business relying on this defence should
+size it against a real attacker, not a toy one.
+
+One caveat in the other direction: training `distilbert-base-uncased` on 2,000
+pairs took about 19 minutes on this machine's CPU here, against seconds for the
+TF-IDF model. That cost is not nothing, but it is a one-time cost for the
+attacker, not a per-query one, so it does not change the numbers above; it
+just means a serious attacker needs a GPU, not that they need one to succeed.
+
+And these real-text copies still agree with the victim less than the copies in
+the synthetic experiment further down (86.2% here at best against 98.7%
+there), which is one more sign the synthetic numbers were flattering, even
+against a much stronger attacker than that experiment used.
+
+Run it yourself (the API does not need to be running, since it replays the
+pairs `eval/harvest_real.py` already collected):
+
+```bash
+.venv/Scripts/python.exe eval/defend_real_strong.py
+```
+
+Putting the whole project together:
+
+| Attacker | What stops it |
+|---|---|
+| Probes the model's decision boundary | the detector: 3 of 3 caught, 0 false alarms on real customers |
+| Harvests ordinary text with one key, weak student | a per-key query budget: holds them near guessing |
+| Harvests ordinary text with one key, capable student | a per-key query budget: slows them, does not stop them |
+| Harvests ordinary text with many cheap keys | nothing in this repo; it needs keys tied to real identities |
 
 ## Results on synthetic traffic
 
@@ -649,7 +697,7 @@ Run it yourself with the API up and a baseline calibrated:
 
 Being honest, because most of this isn't fixed.
 
-**Passive harvesting of real text isn't detected.** On real data, 0 of 7 harvester keys were caught (see Results on real text). The detector is good at spotting someone probing the model and bad at spotting someone who just sends a lot of ordinary-looking text. That's the biggest limit of the whole approach. A per-key query budget helps against a harvester with one key, but one with many cheap keys still gets most of the model (see Defending against harvesting).
+**Passive harvesting of real text isn't detected.** On real data, 0 of 7 harvester keys were caught (see Results on real text). The detector is good at spotting someone probing the model and bad at spotting someone who just sends a lot of ordinary-looking text. That's the biggest limit of the whole approach. A per-key query budget helps a lot against a weak attacker and only a little against a capable one, and one with many cheap keys still gets most of the model either way (see Defending against harvesting).
 
 **The synthetic customers are still fake.** It's more varied than it was (15
 clients, different speeds, some bursty, some steady, some machine-paced), but it

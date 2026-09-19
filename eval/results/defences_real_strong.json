@@ -1,0 +1,32 @@
+{
+  "heldout": 1000,
+  "harvest_pool": 2000,
+  "majority_baseline": 0.541,
+  "model": "distilbert-base-uncased",
+  "epochs": 3,
+  "max_len": 64,
+  "batch": 16,
+  "lr": 2e-05,
+  "curve": [
+    {
+      "pairs": 50,
+      "fidelity": 0.651,
+      "train_seconds": 72.04452514648438
+    },
+    {
+      "pairs": 200,
+      "fidelity": 0.815,
+      "train_seconds": 146.33116722106934
+    },
+    {
+      "pairs": 800,
+      "fidelity": 0.856,
+      "train_seconds": 484.32174801826477
+    },
+    {
+      "pairs": 2000,
+      "fidelity": 0.862,
+      "train_seconds": 1134.4874594211578
+    }
+  ]
+}
