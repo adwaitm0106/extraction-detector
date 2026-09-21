@@ -1,0 +1,1068 @@
+{
+  "queries_per_round": 60,
+  "confirm_rounds": 3,
+  "max_rounds": 12,
+  "min_flags": 2,
+  "summary": {
+    "informed": {
+      "trials": 3,
+      "evaded": 3,
+      "median_first_unflagged_round": 3,
+      "rounds_range": [
+        3,
+        3
+      ],
+      "median_queries_spent": 300,
+      "mean_flips_round1": 0.3333333333333333,
+      "mean_flips_when_evaded": 2
+    },
+    "blind": {
+      "trials": 3,
+      "evaded": 0,
+      "median_first_unflagged_round": 12,
+      "rounds_range": [
+        12,
+        12
+      ],
+      "median_queries_spent": 720,
+      "mean_flips_round1": 0.3333333333333333,
+      "mean_flips_when_evaded": null
+    },
+    "prior": {
+      "trials": 3,
+      "evaded": 3,
+      "median_first_unflagged_round": 1,
+      "rounds_range": [
+        1,
+        1
+      ],
+      "median_queries_spent": 180,
+      "mean_flips_round1": 2.6666666666666665,
+      "mean_flips_when_evaded": 2.6666666666666665
+    }
+  },
+  "trials": [
+    {
+      "mode": "informed",
+      "trial": 0,
+      "evaded": true,
+      "first_unflagged_round": 3,
+      "rounds_played": 5,
+      "queries_spent": 300,
+      "history": [
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant",
+          "signals_fired": 4,
+          "flagged": [
+            "iat_burstiness",
+            "herdan_c",
+            "template_share",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 1,
+          "unique_queries": 58,
+          "round": 1,
+          "adapted": [
+            "dedupe",
+            "edits",
+            "pacing",
+            "seeds",
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=80 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 2,
+          "flagged": [
+            "near_dup_rate",
+            "herdan_c"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 1,
+          "unique_queries": 60,
+          "round": 2,
+          "adapted": [
+            "dedupe",
+            "edits",
+            "seeds",
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 2,
+          "unique_queries": 60,
+          "round": 3,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 1,
+          "unique_queries": 60,
+          "round": 4,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 1,
+          "flagged": [
+            "conf_p10"
+          ],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 1,
+          "unique_queries": 60,
+          "round": 5,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "informed",
+      "trial": 1,
+      "evaded": true,
+      "first_unflagged_round": 3,
+      "rounds_played": 5,
+      "queries_spent": 300,
+      "history": [
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant",
+          "signals_fired": 4,
+          "flagged": [
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 0,
+          "unique_queries": 57,
+          "round": 1,
+          "adapted": [
+            "dedupe",
+            "edits",
+            "pacing",
+            "seeds",
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=80 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 2,
+          "flagged": [
+            "near_dup_rate",
+            "herdan_c"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 1,
+          "unique_queries": 60,
+          "round": 2,
+          "adapted": [
+            "dedupe",
+            "edits",
+            "seeds",
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 3,
+          "unique_queries": 60,
+          "round": 3,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 1,
+          "flagged": [
+            "conf_p10"
+          ],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 5,
+          "unique_queries": 60,
+          "round": 4,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 2,
+          "unique_queries": 60,
+          "round": 5,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "informed",
+      "trial": 2,
+      "evaded": true,
+      "first_unflagged_round": 3,
+      "rounds_played": 5,
+      "queries_spent": 300,
+      "history": [
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant",
+          "signals_fired": 4,
+          "flagged": [
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 0,
+          "unique_queries": 56,
+          "round": 1,
+          "adapted": [
+            "dedupe",
+            "edits",
+            "pacing",
+            "seeds",
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=80 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 2,
+          "flagged": [
+            "near_dup_rate",
+            "herdan_c"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 4,
+          "unique_queries": 60,
+          "round": 2,
+          "adapted": [
+            "dedupe",
+            "edits",
+            "seeds",
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 2,
+          "unique_queries": 60,
+          "round": 3,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 1,
+          "flagged": [
+            "conf_p10"
+          ],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 3,
+          "unique_queries": 60,
+          "round": 4,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 3,
+          "unique_queries": 60,
+          "round": 5,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "blind",
+      "trial": 0,
+      "evaded": false,
+      "first_unflagged_round": null,
+      "rounds_played": 12,
+      "queries_spent": 720,
+      "history": [
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant",
+          "signals_fired": 4,
+          "flagged": [
+            "iat_burstiness",
+            "herdan_c",
+            "template_share",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 1,
+          "unique_queries": 58,
+          "round": 1,
+          "adapted": [
+            "pacing"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=poisson",
+          "signals_fired": 3,
+          "flagged": [
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 0,
+          "unique_queries": 56,
+          "round": 2,
+          "adapted": [
+            "lengths"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=varied pacing=poisson",
+          "signals_fired": 3,
+          "flagged": [
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 1,
+          "unique_queries": 54,
+          "round": 3,
+          "adapted": [
+            "seeds"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=1 vocab=20 dedupe=n lengths=varied pacing=poisson",
+          "signals_fired": 2,
+          "flagged": [
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 6,
+          "unique_queries": 58,
+          "round": 4,
+          "adapted": [
+            "mixed"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=1 vocab=20 dedupe=n lengths=varied pacing=poisson",
+          "signals_fired": 2,
+          "flagged": [
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 3,
+          "unique_queries": 59,
+          "round": 5,
+          "adapted": [
+            "dedupe"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=1 vocab=20 dedupe=y lengths=varied pacing=poisson",
+          "signals_fired": 3,
+          "flagged": [
+            "herdan_c",
+            "near_dup_rate",
+            "len_cv"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 0,
+          "unique_queries": 60,
+          "round": 6,
+          "adapted": [
+            "mixed"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=1 vocab=20 dedupe=y lengths=varied pacing=poisson",
+          "signals_fired": 2,
+          "flagged": [
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 3,
+          "unique_queries": 60,
+          "round": 7,
+          "adapted": [
+            "seeds"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=1 vocab=20 dedupe=y lengths=varied pacing=poisson",
+          "signals_fired": 2,
+          "flagged": [
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 0,
+          "unique_queries": 60,
+          "round": 8,
+          "adapted": [
+            "edits"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=20 dedupe=y lengths=varied pacing=poisson",
+          "signals_fired": 2,
+          "flagged": [
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 1,
+          "unique_queries": 60,
+          "round": 9,
+          "adapted": [
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=80 dedupe=y lengths=varied pacing=poisson",
+          "signals_fired": 3,
+          "flagged": [
+            "len_cv",
+            "herdan_c",
+            "label_balance"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 4,
+          "unique_queries": 60,
+          "round": 10,
+          "adapted": [
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=320 dedupe=y lengths=varied pacing=poisson",
+          "signals_fired": 2,
+          "flagged": [
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 3,
+          "unique_queries": 60,
+          "round": 11,
+          "adapted": [
+            "dedupe"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=320 dedupe=y lengths=varied pacing=poisson",
+          "signals_fired": 2,
+          "flagged": [
+            "near_dup_rate",
+            "herdan_c"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 3,
+          "unique_queries": 60,
+          "round": 12,
+          "adapted": [
+            "dedupe"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "blind",
+      "trial": 1,
+      "evaded": false,
+      "first_unflagged_round": 12,
+      "rounds_played": 12,
+      "queries_spent": 720,
+      "history": [
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant",
+          "signals_fired": 4,
+          "flagged": [
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 0,
+          "unique_queries": 57,
+          "round": 1,
+          "adapted": [
+            "pacing"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=poisson",
+          "signals_fired": 3,
+          "flagged": [
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 1,
+          "unique_queries": 58,
+          "round": 2,
+          "adapted": [
+            "edits"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=2 vocab=20 dedupe=n lengths=narrow pacing=poisson",
+          "signals_fired": 4,
+          "flagged": [
+            "herdan_c",
+            "near_dup_rate",
+            "template_share",
+            "conf_p10"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 9,
+          "unique_queries": 60,
+          "round": 3,
+          "adapted": [
+            "dedupe"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=2 vocab=20 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 3,
+          "flagged": [
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 1,
+          "unique_queries": 60,
+          "round": 4,
+          "adapted": [
+            "lengths"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=2 vocab=20 dedupe=y lengths=varied pacing=poisson",
+          "signals_fired": 3,
+          "flagged": [
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 0,
+          "unique_queries": 60,
+          "round": 5,
+          "adapted": [
+            "lengths"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=2 vocab=20 dedupe=y lengths=varied pacing=poisson",
+          "signals_fired": 2,
+          "flagged": [
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 2,
+          "unique_queries": 60,
+          "round": 6,
+          "adapted": [
+            "seeds"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=2 vocab=20 dedupe=y lengths=varied pacing=poisson",
+          "signals_fired": 3,
+          "flagged": [
+            "herdan_c",
+            "len_cv",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 12,
+          "unique_queries": 60,
+          "round": 7,
+          "adapted": [
+            "mixed"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=2 vocab=20 dedupe=y lengths=varied pacing=poisson",
+          "signals_fired": 3,
+          "flagged": [
+            "herdan_c",
+            "near_dup_rate",
+            "conf_p10"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 5,
+          "unique_queries": 60,
+          "round": 8,
+          "adapted": [
+            "seeds"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=20 dedupe=y lengths=varied pacing=poisson",
+          "signals_fired": 2,
+          "flagged": [
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 1,
+          "unique_queries": 60,
+          "round": 9,
+          "adapted": [
+            "lengths"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=20 dedupe=y lengths=varied pacing=poisson",
+          "signals_fired": 2,
+          "flagged": [
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 5,
+          "unique_queries": 60,
+          "round": 10,
+          "adapted": [
+            "dedupe"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=20 dedupe=y lengths=varied pacing=poisson",
+          "signals_fired": 3,
+          "flagged": [
+            "near_dup_rate",
+            "conf_p10",
+            "herdan_c"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 8,
+          "unique_queries": 60,
+          "round": 11,
+          "adapted": [
+            "seeds"
+          ]
+        },
+        {
+          "tactics": "seeds=24 edits=2 vocab=20 dedupe=y lengths=varied pacing=poisson",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 4,
+          "unique_queries": 60,
+          "round": 12,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "blind",
+      "trial": 2,
+      "evaded": false,
+      "first_unflagged_round": null,
+      "rounds_played": 12,
+      "queries_spent": 720,
+      "history": [
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant",
+          "signals_fired": 4,
+          "flagged": [
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 0,
+          "unique_queries": 56,
+          "round": 1,
+          "adapted": [
+            "seeds"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant",
+          "signals_fired": 3,
+          "flagged": [
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 0,
+          "unique_queries": 57,
+          "round": 2,
+          "adapted": [
+            "edits"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=2 vocab=20 dedupe=n lengths=narrow pacing=constant",
+          "signals_fired": 3,
+          "flagged": [
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 4,
+          "unique_queries": 60,
+          "round": 3,
+          "adapted": [
+            "lengths"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=2 vocab=20 dedupe=n lengths=varied pacing=constant",
+          "signals_fired": 3,
+          "flagged": [
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 6,
+          "unique_queries": 60,
+          "round": 4,
+          "adapted": [
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=2 vocab=80 dedupe=n lengths=varied pacing=constant",
+          "signals_fired": 5,
+          "flagged": [
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "conf_p10",
+            "len_cv"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 9,
+          "unique_queries": 60,
+          "round": 5,
+          "adapted": [
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=2 vocab=320 dedupe=n lengths=varied pacing=constant",
+          "signals_fired": 3,
+          "flagged": [
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 1,
+          "unique_queries": 60,
+          "round": 6,
+          "adapted": [
+            "seeds"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=320 dedupe=n lengths=varied pacing=constant",
+          "signals_fired": 3,
+          "flagged": [
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 2,
+          "unique_queries": 60,
+          "round": 7,
+          "adapted": [
+            "lengths"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=320 dedupe=n lengths=varied pacing=constant",
+          "signals_fired": 3,
+          "flagged": [
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 5,
+          "unique_queries": 59,
+          "round": 8,
+          "adapted": [
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=1280 dedupe=n lengths=varied pacing=constant",
+          "signals_fired": 3,
+          "flagged": [
+            "iat_burstiness",
+            "near_dup_rate",
+            "herdan_c"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 3,
+          "unique_queries": 60,
+          "round": 9,
+          "adapted": [
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=5000 dedupe=n lengths=varied pacing=constant",
+          "signals_fired": 3,
+          "flagged": [
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 5,
+          "unique_queries": 60,
+          "round": 10,
+          "adapted": [
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=5000 dedupe=n lengths=varied pacing=constant",
+          "signals_fired": 3,
+          "flagged": [
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 6,
+          "unique_queries": 60,
+          "round": 11,
+          "adapted": [
+            "pacing"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=5000 dedupe=n lengths=varied pacing=poisson",
+          "signals_fired": 2,
+          "flagged": [
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 4,
+          "unique_queries": 60,
+          "round": 12,
+          "adapted": [
+            "pacing"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "prior",
+      "trial": 0,
+      "evaded": true,
+      "first_unflagged_round": 1,
+      "rounds_played": 3,
+      "queries_spent": 180,
+      "history": [
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 3,
+          "unique_queries": 60,
+          "round": 1,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 1,
+          "unique_queries": 60,
+          "round": 2,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 1,
+          "flagged": [
+            "conf_p10"
+          ],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 5,
+          "unique_queries": 60,
+          "round": 3,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "prior",
+      "trial": 1,
+      "evaded": true,
+      "first_unflagged_round": 1,
+      "rounds_played": 3,
+      "queries_spent": 180,
+      "history": [
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 1,
+          "unique_queries": 60,
+          "round": 1,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 1,
+          "unique_queries": 60,
+          "round": 2,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 1,
+          "flagged": [
+            "conf_p10"
+          ],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 3,
+          "unique_queries": 60,
+          "round": 3,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "prior",
+      "trial": 2,
+      "evaded": true,
+      "first_unflagged_round": 1,
+      "rounds_played": 3,
+      "queries_spent": 180,
+      "history": [
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 4,
+          "unique_queries": 60,
+          "round": 1,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 3,
+          "unique_queries": 60,
+          "round": 2,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 0,
+          "unique_queries": 60,
+          "round": 3,
+          "adapted": []
+        }
+      ]
+    }
+  ]
+}

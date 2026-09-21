@@ -1,0 +1,127 @@
+{
+  "log": "eval_run.jsonl",
+  "attackers": 10,
+  "customers": 15,
+  "runs": [
+    {
+      "config": "all signals",
+      "signals": 10,
+      "caught": 10,
+      "attackers": 10,
+      "false_alarms": 1,
+      "customers": 15
+    },
+    {
+      "config": "drop exact_dup_rate",
+      "signals": 9,
+      "caught": 10,
+      "attackers": 10,
+      "false_alarms": 1,
+      "customers": 15
+    },
+    {
+      "config": "drop near_dup_rate",
+      "signals": 9,
+      "caught": 8,
+      "attackers": 10,
+      "false_alarms": 1,
+      "customers": 15
+    },
+    {
+      "config": "drop herdan_c",
+      "signals": 9,
+      "caught": 8,
+      "attackers": 10,
+      "false_alarms": 1,
+      "customers": 15
+    },
+    {
+      "config": "drop token_entropy_norm",
+      "signals": 9,
+      "caught": 10,
+      "attackers": 10,
+      "false_alarms": 1,
+      "customers": 15
+    },
+    {
+      "config": "drop len_cv",
+      "signals": 9,
+      "caught": 10,
+      "attackers": 10,
+      "false_alarms": 1,
+      "customers": 15
+    },
+    {
+      "config": "drop template_share",
+      "signals": 9,
+      "caught": 10,
+      "attackers": 10,
+      "false_alarms": 1,
+      "customers": 15
+    },
+    {
+      "config": "drop low_conf_rate",
+      "signals": 9,
+      "caught": 10,
+      "attackers": 10,
+      "false_alarms": 0,
+      "customers": 15
+    },
+    {
+      "config": "drop conf_p10",
+      "signals": 9,
+      "caught": 10,
+      "attackers": 10,
+      "false_alarms": 0,
+      "customers": 15
+    },
+    {
+      "config": "drop iat_burstiness",
+      "signals": 9,
+      "caught": 10,
+      "attackers": 10,
+      "false_alarms": 1,
+      "customers": 15
+    },
+    {
+      "config": "drop label_balance",
+      "signals": 9,
+      "caught": 10,
+      "attackers": 10,
+      "false_alarms": 1,
+      "customers": 15
+    },
+    {
+      "config": "drop confidence signals",
+      "signals": 8,
+      "caught": 10,
+      "attackers": 10,
+      "false_alarms": 0,
+      "customers": 15
+    },
+    {
+      "config": "content only",
+      "signals": 6,
+      "caught": 10,
+      "attackers": 10,
+      "false_alarms": 0,
+      "customers": 15
+    },
+    {
+      "config": "timing and labels only",
+      "signals": 2,
+      "caught": 0,
+      "attackers": 10,
+      "false_alarms": 0,
+      "customers": 15
+    },
+    {
+      "config": "confidence signals only",
+      "signals": 2,
+      "caught": 1,
+      "attackers": 10,
+      "false_alarms": 1,
+      "customers": 15
+    }
+  ]
+}

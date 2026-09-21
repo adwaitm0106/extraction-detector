@@ -1,0 +1,288 @@
+{
+  "baseline": {
+    "windows": 24,
+    "clients": 8,
+    "window": 30,
+    "z_flag": 3.5,
+    "min_flags": 2
+  },
+  "requests_scored": 1050,
+  "median_latency_ms": 332.0,
+  "detection": {
+    "caught": 3,
+    "attackers": 10
+  },
+  "false_positives": {
+    "seen_source": [
+      0,
+      8
+    ],
+    "unseen_source": [
+      0,
+      2
+    ]
+  },
+  "signal_firing": {
+    "exact_dup_rate": {
+      "attackers": 0,
+      "benign": 0
+    },
+    "near_dup_rate": {
+      "attackers": 3,
+      "benign": 0
+    },
+    "herdan_c": {
+      "attackers": 3,
+      "benign": 0
+    },
+    "token_entropy_norm": {
+      "attackers": 0,
+      "benign": 0
+    },
+    "len_cv": {
+      "attackers": 0,
+      "benign": 0
+    },
+    "template_share": {
+      "attackers": 0,
+      "benign": 0
+    },
+    "low_conf_rate": {
+      "attackers": 0,
+      "benign": 3
+    },
+    "conf_p10": {
+      "attackers": 1,
+      "benign": 0
+    },
+    "iat_burstiness": {
+      "attackers": 0,
+      "benign": 1
+    },
+    "label_balance": {
+      "attackers": 2,
+      "benign": 0
+    }
+  },
+  "clients": [
+    {
+      "api_key": "atk-harvest-mixed",
+      "group": "attacker",
+      "requests": 60,
+      "flags": 0,
+      "verdict": "benign",
+      "signals": []
+    },
+    {
+      "api_key": "atk-harvest-split-a",
+      "group": "attacker",
+      "requests": 30,
+      "flags": 0,
+      "verdict": "benign",
+      "signals": []
+    },
+    {
+      "api_key": "atk-harvest-split-b",
+      "group": "attacker",
+      "requests": 30,
+      "flags": 0,
+      "verdict": "benign",
+      "signals": []
+    },
+    {
+      "api_key": "atk-harvest-split-c",
+      "group": "attacker",
+      "requests": 30,
+      "flags": 0,
+      "verdict": "benign",
+      "signals": []
+    },
+    {
+      "api_key": "atk-harvest-split-d",
+      "group": "attacker",
+      "requests": 30,
+      "flags": 0,
+      "verdict": "benign",
+      "signals": []
+    },
+    {
+      "api_key": "atk-harvest-split-e",
+      "group": "attacker",
+      "requests": 30,
+      "flags": 0,
+      "verdict": "benign",
+      "signals": []
+    },
+    {
+      "api_key": "atk-harvest-yelp",
+      "group": "attacker",
+      "requests": 60,
+      "flags": 0,
+      "verdict": "benign",
+      "signals": []
+    },
+    {
+      "api_key": "atk-probe-twitter",
+      "group": "attacker",
+      "requests": 60,
+      "flags": 3,
+      "verdict": "ATTACK",
+      "signals": [
+        {
+          "name": "herdan_c",
+          "z": 12.5
+        },
+        {
+          "name": "label_balance",
+          "z": 8.8
+        },
+        {
+          "name": "near_dup_rate",
+          "z": 5.3
+        }
+      ]
+    },
+    {
+      "api_key": "atk-probe-yelp",
+      "group": "attacker",
+      "requests": 60,
+      "flags": 4,
+      "verdict": "ATTACK",
+      "signals": [
+        {
+          "name": "herdan_c",
+          "z": 11.9
+        },
+        {
+          "name": "label_balance",
+          "z": 6.1
+        },
+        {
+          "name": "near_dup_rate",
+          "z": 5.3
+        },
+        {
+          "name": "conf_p10",
+          "z": 5.0
+        }
+      ]
+    },
+    {
+      "api_key": "atk-template-boundary",
+      "group": "attacker",
+      "requests": 60,
+      "flags": 2,
+      "verdict": "ATTACK",
+      "signals": [
+        {
+          "name": "herdan_c",
+          "z": 11.9
+        },
+        {
+          "name": "near_dup_rate",
+          "z": 5.0
+        }
+      ]
+    },
+    {
+      "api_key": "cust-amazon-0",
+      "group": "benign (seen source)",
+      "requests": 60,
+      "flags": 0,
+      "verdict": "benign",
+      "signals": []
+    },
+    {
+      "api_key": "cust-amazon-1",
+      "group": "benign (seen source)",
+      "requests": 60,
+      "flags": 0,
+      "verdict": "benign",
+      "signals": []
+    },
+    {
+      "api_key": "cust-imdb-0",
+      "group": "benign (unseen source)",
+      "requests": 60,
+      "flags": 1,
+      "verdict": "benign",
+      "signals": [
+        {
+          "name": "low_conf_rate",
+          "z": 3.8
+        }
+      ]
+    },
+    {
+      "api_key": "cust-imdb-1",
+      "group": "benign (unseen source)",
+      "requests": 60,
+      "flags": 1,
+      "verdict": "benign",
+      "signals": [
+        {
+          "name": "low_conf_rate",
+          "z": 3.8
+        }
+      ]
+    },
+    {
+      "api_key": "cust-reddit-0",
+      "group": "benign (seen source)",
+      "requests": 60,
+      "flags": 1,
+      "verdict": "benign",
+      "signals": [
+        {
+          "name": "low_conf_rate",
+          "z": 4.3
+        }
+      ]
+    },
+    {
+      "api_key": "cust-reddit-1",
+      "group": "benign (seen source)",
+      "requests": 60,
+      "flags": 0,
+      "verdict": "benign",
+      "signals": []
+    },
+    {
+      "api_key": "cust-twitter-0",
+      "group": "benign (seen source)",
+      "requests": 60,
+      "flags": 0,
+      "verdict": "benign",
+      "signals": []
+    },
+    {
+      "api_key": "cust-twitter-1",
+      "group": "benign (seen source)",
+      "requests": 60,
+      "flags": 1,
+      "verdict": "benign",
+      "signals": [
+        {
+          "name": "iat_burstiness",
+          "z": 3.6
+        }
+      ]
+    },
+    {
+      "api_key": "cust-yelp-0",
+      "group": "benign (seen source)",
+      "requests": 60,
+      "flags": 0,
+      "verdict": "benign",
+      "signals": []
+    },
+    {
+      "api_key": "cust-yelp-1",
+      "group": "benign (seen source)",
+      "requests": 60,
+      "flags": 0,
+      "verdict": "benign",
+      "signals": []
+    }
+  ]
+}
