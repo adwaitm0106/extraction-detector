@@ -41,6 +41,7 @@ from features import (  # noqa: E402
     compute_features,
     group_by_key,
     load_log,
+    parse_row,
     windows,
 )
 
@@ -158,6 +159,61 @@ def scan(log_paths, baseline, window, stride, rng):
     return out
 
 
+class LogTail:
+    """Reads only the lines added to one or more JSONL logs since the last poll.
+
+    Rescanning the whole log every interval costs more the longer the API has
+    been running: measured, 100k logged requests takes 3 to 5 s to rescan, which
+    is at or above the default 3 s interval, and 500k takes about 21 s. This
+    keeps a byte offset per file and each client's rows in memory, so a poll
+    costs in proportion to the NEW traffic, not to the size of the log.
+
+    Reads are binary and stop at the last newline, so a line the API is still
+    writing is left for the next poll instead of being parsed half-finished.
+    If a file shrinks (rotated or truncated) everything is dropped and reread.
+    Memory grows with the log, because every row is kept.
+    """
+
+    def __init__(self, paths):
+        self.paths = list(paths)
+        self.offsets = {p: 0 for p in self.paths}
+        self.by_key = {}
+
+    def poll(self):
+        """Returns (keys that received new rows, whether all state was reset)."""
+        reset = False
+        for path in self.paths:
+            try:
+                if os.path.getsize(path) < self.offsets[path]:
+                    reset = True
+            except OSError:
+                continue
+        if reset:
+            self.offsets = {p: 0 for p in self.paths}
+            self.by_key = {}
+
+        dirty = set()
+        for path in self.paths:
+            try:
+                with open(path, "rb") as fh:
+                    fh.seek(self.offsets[path])
+                    data = fh.read()
+            except OSError:
+                continue
+            end = data.rfind(b"\n")
+            if end < 0:
+                continue  # nothing complete yet
+            self.offsets[path] += end + 1
+            for line in data[:end + 1].decode("utf-8", errors="replace").splitlines():
+                row = parse_row(line)
+                if row is not None:
+                    self.by_key.setdefault(row["api_key"], []).append(row)
+                    dirty.add(row["api_key"])
+        for key in dirty:
+            self.by_key[key].sort(key=lambda r: float(r["ts"]))
+        return dirty, reset
+
+
 def watch(args, baseline, window, stride, rng):
     """Tail the log, rescoring on an interval and alerting on new evidence.
 
@@ -175,9 +231,20 @@ def watch(args, baseline, window, stride, rng):
     announced = {}
     blocked_before = set()
     seen_requests = 0
+    tail = LogTail(args.log)
+    results = {}
     try:
         while True:
-            results = scan(args.log, baseline, window, stride, rng)
+            dirty, reset = tail.poll()
+            if reset:
+                results.clear()
+                announced.clear()
+            for key in dirty:
+                r = score_client(tail.by_key[key], baseline, window, stride, rng)
+                if r:
+                    results[key] = r
+                else:
+                    results.pop(key, None)
             total = sum(r["n_requests"] for r in results.values())
             for key, r in sorted(results.items(),
                                  key=lambda kv: -kv[1]["n_flags"]):

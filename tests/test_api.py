@@ -88,15 +88,23 @@ def test_input_exactly_at_the_limit_is_accepted(make_client):
         assert client.post("/predict", headers=KEY, json={"input": "a " * 1000}).status_code == 200
 
 
-def test_blocked_key_gets_429_with_reasons_and_others_are_unaffected(make_client):
+def test_blocked_key_gets_429_without_leaking_reasons_and_others_are_unaffected(make_client):
     blocked = {"test-key": {"why": ["sends many near-identical queries"]}}
     with make_client(blocked=blocked) as client:
         r = client.post("/predict", headers=KEY, json={"input": "a great film"})
         other = client.post("/predict", headers={"X-API-Key": "someone-else"},
                             json={"input": "a great film"})
     assert r.status_code == 429
-    assert r.json()["why"] == ["sends many near-identical queries"]
+    assert r.json() == {"error": "api key throttled: suspected model extraction"}
+    assert "near-identical" not in r.text
     assert other.status_code == 200
+
+
+def test_log_lines_are_written_with_fsync_disabled(make_client, tmp_path, monkeypatch):
+    monkeypatch.setenv("LOG_FSYNC", "0")
+    with make_client() as client:
+        assert client.post("/predict", headers=KEY, json={"input": "a great film"}).status_code == 200
+    assert len(logged(tmp_path)) == 1
 
 
 def test_budget_refuses_after_the_limit_and_ignores_malformed_requests(make_client):

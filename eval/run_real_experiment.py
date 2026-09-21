@@ -20,6 +20,10 @@ What it does:
   4. Score every client, then write eval/results/real_data.json and
      eval/results/real_data.md.
 
+To evaluate a different victim model, start the API with MODEL_NAME set,
+point --base-url at it, and pass --tag so the outputs do not overwrite the
+first model's. --log must be the LOG_PATH that server writes to.
+
 Customers and attackers run in separate waves so the API is never saturated:
 the log records server-side timestamps, and heavy queueing would distort the
 timing features for everyone.
@@ -50,6 +54,7 @@ EVAL_LOG = os.path.join(LOGS, "real_eval.jsonl")
 THRESHOLDS = os.path.join(LOGS, "real_thresholds.json")
 BLOCKLIST = os.path.join(ROOT, "blocked.json")
 RESULTS = os.path.join(HERE, "results")
+TAG = ""
 
 SEEN = ("reddit", "twitter", "yelp", "amazon")
 UNSEEN = ("imdb",)
@@ -98,12 +103,25 @@ def group_of(key):
     return "attacker"
 
 
+def retag(tag, log):
+    """Point every output path at a tagged copy, so a second model does not overwrite the first."""
+    global LOG, CALIB_LOG, EVAL_LOG, THRESHOLDS, TAG
+    TAG = ("_" + tag) if tag else ""
+    LOG = log
+    CALIB_LOG = os.path.join(LOGS, "real_calib%s.jsonl" % TAG)
+    EVAL_LOG = os.path.join(LOGS, "real_eval%s.jsonl" % TAG)
+    THRESHOLDS = os.path.join(LOGS, "real_thresholds%s.json" % TAG)
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--base-url", default="http://127.0.0.1:8000")
     p.add_argument("--n", type=int, default=60, help="requests per client")
+    p.add_argument("--tag", default="", help="suffix for outputs, e.g. roberta")
+    p.add_argument("--log", default=LOG, help="request log the API writes to")
     args = p.parse_args()
+    retag(args.tag, args.log)
 
     try:
         with urllib.request.urlopen(args.base_url + "/health", timeout=5) as r:
@@ -199,7 +217,7 @@ def main():
         "signal_firing": fire,
         "clients": clients,
     }
-    with open(os.path.join(RESULTS, "real_data.json"), "w", encoding="utf-8") as fh:
+    with open(os.path.join(RESULTS, "real_data%s.json" % TAG), "w", encoding="utf-8") as fh:
         json.dump(results, fh, indent=2)
 
     md = []
@@ -224,14 +242,14 @@ def main():
         md.append("| `%s` | %d / %d | %d / %d |" % (
             f, fire[f]["attackers"], n_atk, fire[f]["benign"], n_seen + n_unseen))
     text = "\n".join(md) + "\n"
-    with open(os.path.join(RESULTS, "real_data.md"), "w", encoding="utf-8") as fh:
+    with open(os.path.join(RESULTS, "real_data%s.md" % TAG), "w", encoding="utf-8") as fh:
         fh.write(text)
 
     print()
     print(text)
     print("median inference latency %s ms over %d requests"
           % (results["median_latency_ms"], len(rows)))
-    print("wrote eval/results/real_data.json and eval/results/real_data.md")
+    print("wrote eval/results/real_data%s.json and eval/results/real_data%s.md" % (TAG, TAG))
     return 0
 
 

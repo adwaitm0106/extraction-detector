@@ -6,8 +6,11 @@ downstream detector can look for extraction-shaped traffic patterns.
 Environment:
     LOG_PATH         request log (default data/logs/requests.jsonl)
     BLOCKLIST_PATH   keys the detector has flagged (default blocked.json)
+    MODEL_NAME       Hugging Face sentiment model to serve (default DistilBERT SST-2)
     RESPONSE_MODE    full | label | rounded   (see api/defences.py)
     QUERY_BUDGET     requests per key, 0 = unlimited
+    LOG_FSYNC        1 (default) fsyncs every log line so nothing is lost on a crash;
+                     0 trades that for throughput (see eval/bench_throughput.py)
     MODEL_STUB       set to 1 to skip the real model, for tests and CI
 """
 
@@ -28,10 +31,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from defences import RESPONSE_MODES, QueryBudget, shape_response  # noqa: E402
 from stub import StubPipeline  # noqa: E402
 
-MODEL_NAME = "distilbert-base-uncased-finetuned-sst-2-english"
+MODEL_NAME = os.environ.get("MODEL_NAME", "distilbert-base-uncased-finetuned-sst-2-english")
 LOG_PATH = os.environ.get("LOG_PATH", "data/logs/requests.jsonl")
 BLOCKLIST_PATH = os.environ.get("BLOCKLIST_PATH", "blocked.json")
 MAX_INPUT_CHARS = 2000
+LOG_FSYNC = os.environ.get("LOG_FSYNC", "1") != "0"
 
 # Response-side defences. A bad value fails at startup rather than on the
 # first request, so a misconfigured deployment never serves at all.
@@ -84,7 +88,8 @@ def _log(record: dict) -> None:
     with _LOG_LOCK, open(LOG_PATH, "a", encoding="utf-8") as fh:
         fh.write(json.dumps(record, ensure_ascii=False) + "\n")
         fh.flush()
-        os.fsync(fh.fileno())
+        if LOG_FSYNC:
+            os.fsync(fh.fileno())
 
 
 # --- Enforcement. The detector writes flagged keys to a JSON file; it is
@@ -118,10 +123,11 @@ async def predict(request: Request):
     if not api_key:
         return _error(401, "missing or empty X-API-Key header")
 
-    block = _blocked(api_key)
-    if block is not None:
-        return _error(429, "api key throttled: suspected model extraction",
-                      why=block.get("why", []))
+    # The reasons for a block stay in blocked.json for the operator. They are
+    # deliberately not returned here: telling a blocked client which signals
+    # fired is a recipe for the next attempt (see eval/adaptive_attacker.py).
+    if _blocked(api_key) is not None:
+        return _error(429, "api key throttled: suspected model extraction")
 
     raw = await _read_body(request)
     if raw is None:

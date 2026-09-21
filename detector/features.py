@@ -11,6 +11,7 @@ Each feature is a bounded ratio, so a client sending 30 requests and one
 sending 3000 land on the same scale.
 """
 
+import json
 import math
 from collections import Counter
 
@@ -206,20 +207,31 @@ def compute_features(rows, rng=None):
     }
 
 
+REQUIRED_KEYS = frozenset({"ts", "api_key", "input", "predicted_label", "confidence"})
+
+
+def parse_row(line):
+    """One log line as a dict, or None if it is blank, corrupt or incomplete."""
+    line = line.strip()
+    if not line:
+        return None
+    try:
+        r = json.loads(line)
+    except ValueError:
+        return None
+    if isinstance(r, dict) and REQUIRED_KEYS <= r.keys():
+        return r
+    return None
+
+
 def load_log(path):
     """Parse a JSONL request log, skipping lines a tail may have caught mid-write."""
     rows = []
     with open(path, encoding="utf-8") as fh:
         for line in fh:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                r = __import__("json").loads(line)
-                if {"ts", "api_key", "input", "predicted_label", "confidence"} <= r.keys():
-                    rows.append(r)
-            except ValueError:
-                continue
+            r = parse_row(line)
+            if r is not None:
+                rows.append(r)
     return rows
 
 
