@@ -49,8 +49,19 @@ flag anyone on a single signal alone.
   (TF-IDF) attacker to 55.9% agreement, barely above guessing, but a real
   attacker fine-tuning a small pretrained language model on the same 50
   pairs gets 65.1%, and only needs 200 pairs across 4 keys to reach 81.5%.
+- **It doesn't depend on this one model being overconfident.** Swapping the
+  victim for a very different model (three labels, median confidence 0.84
+  instead of 0.998) gave the identical result, and removing the confidence
+  signals entirely loses no attackers. Two content signals do the work.
+- **An attacker who knows how it works gets past it.** A boundary prober using
+  the standard countermeasures from the first round, with no feedback at all,
+  was never flagged in 3 of 3 trials. Hiding the detector's reasons doesn't
+  change that.
+- **It's fast enough not to matter.** About 20,000 requests a second, over a
+  thousand times faster than the model it protects. Benchmarking it found and
+  fixed a bug that made live alerting fall behind as the log grew.
 - **Everything is reproducible.** One command rebuilds the data, one reruns each
-  experiment, and 52 tests run on every push.
+  experiment, and 62 tests run on every push.
 
 ## What's in here
 
@@ -59,8 +70,9 @@ api/        the "victim" API - a sentiment model that logs every request,
             with optional confidence hiding and per-key query budgets
 traffic/    fake traffic: normal customers and several kinds of attacker
 detector/   detection - features, calibration, scoring, enforcement, dashboard
-eval/       measuring the detector, the stolen-copy and defence experiments
-            (weak and strong attackers), and the charts
+eval/       measuring the detector, the stolen-copy and defence experiments,
+            signal ablation, a second victim model, the adaptive attacker,
+            the throughput benchmark, and the charts
 demo/       one script that runs the whole story end to end, plus a
             stage-by-stage walkthrough of what it prints
 tests/      the automated test suite, run on every push by GitHub Actions
@@ -209,7 +221,10 @@ to run.
 
 ### Watching it live, and cutting attackers off
 
-`--watch` re-reads the log every few seconds and alerts as traffic arrives:
+`--watch` polls the log every few seconds and alerts as traffic arrives. It reads
+only the lines added since the last poll and rescores only the clients that sent
+them, so a cycle stays cheap however long the API has been running (42 ms on a
+100,000-request log, against 3 seconds for a full rescan):
 
 ```bash
 .venv/Scripts/python.exe detector/detector.py --log data/logs/requests.jsonl --watch
@@ -246,10 +261,10 @@ during an experiment.
 
 ### Automated tests
 
-There's a suite of 52 tests that runs on every push through GitHub Actions, on
+There's a suite of 62 tests that runs on every push through GitHub Actions, on
 Python 3.11 and 3.12. It covers the ten signals, calibration and the flag rule,
-the blocklist, the corpus pools, the defences, and the whole API: auth,
-validation, logging, blocking, budgets and response modes.
+the blocklist, the live log reader, the corpus pools, the defences, and the
+whole API: auth, validation, logging, blocking, budgets and response modes.
 
 It doesn't need torch or the model download. The API tests run against a tiny
 stand-in model (`MODEL_STUB=1`), so the whole suite finishes in about a second.
@@ -578,6 +593,166 @@ Putting the whole project together:
 | Harvests ordinary text with one key, capable student | a per-key query budget: slows them, does not stop them |
 | Harvests ordinary text with many cheap keys | nothing in this repo; it needs keys tied to real identities |
 
+## Which signals matter, and does it depend on the victim model?
+
+Two questions that could have quietly undermined everything above. Is the
+detector only working because this particular model is very sure of itself? And
+which of the ten signals is actually doing the catching?
+
+**Which signals.** Each signal was removed in turn and the same clients were
+rescored, with the baseline, the cutoff and the two-signal rule left exactly as
+they were.
+
+| Signals used | Real text: attackers caught | Synthetic: attackers caught |
+|---|---|---|
+| all ten | 3 of 10 | 10 of 10 |
+| without `near_dup_rate` | 1 of 10 | 8 of 10 |
+| without `herdan_c` | 1 of 10 | 8 of 10 |
+| without the two confidence signals | 3 of 10 | 10 of 10 |
+| the six signals that only read the query text | 3 of 10 | 10 of 10 |
+| timing and label balance alone | 0 of 10 | 0 of 10 |
+| the two confidence signals alone | 0 of 10 | 1 of 10 |
+
+`near_dup_rate` and `herdan_c` do the work. The confidence signals do not. On
+the synthetic set, removing them also removed the one false alarm and lost no
+attackers, so there they were a net negative. Earlier versions of this README
+said the confidence signal was carrying the detector. That was wrong. It looked
+that way because its deviations were enormous (z-scores in the dozens), but a
+big deviation is not the same as being needed when other signals already supply
+the two flags.
+
+**A different victim.** The whole real-text experiment was rerun against
+`cardiffnlp/twitter-roberta-base-sentiment-latest`, a different architecture
+trained on different data, with three labels instead of two.
+
+| | DistilBERT SST-2 | RoBERTa (tweets) |
+|---|---|---|
+| Median confidence on real customer text | 0.998 | 0.839 |
+| Answers at 99% confidence or higher | 73.0% | 0.0% |
+| Answers below 90% confidence | 6.7% | 65.3% |
+| Learned baseline for 10th percentile confidence | 0.938 | 0.511 |
+| Attackers caught | 3 of 10 | 3 of 10 |
+| Customers wrongly flagged | 0 of 10 | 0 of 10 |
+| Attackers caught without the confidence signals | 3 of 10 | 3 of 10 |
+
+The two models behave very differently. RoBERTa is far less sure of itself, and
+the learned baseline moved to match. The detection result did not change at all,
+and the same three attackers were caught either way. The one place the models
+differed: `low_conf_rate` fired on three RoBERTa customers, each time alone, so
+none was flagged. A less certain model makes the confidence signals noisier for
+honest users, which is one more reason not to lean on them.
+
+Run it yourself:
+
+```bash
+.venv/Scripts/python.exe eval/ablate_signals.py --log data/logs/real_eval.jsonl \
+  --thresholds data/logs/real_thresholds.json --attack-prefix atk- --tag real_distilbert
+```
+
+The second-model run starts the API with `MODEL_NAME=cardiffnlp/twitter-roberta-base-sentiment-latest`
+and uses `eval/run_real_experiment.py --tag roberta`. It downloads about 500 MB.
+
+## Red-teaming the detector
+
+Every attacker so far was static. A real one gets caught, works out why, and
+tries again. `eval/adaptive_attacker.py` plays that game with a boundary prober,
+the kind the detector reliably catches. Each round it sends 60 real queries to the
+live API under a fresh key and gets scored by the real detector against the
+real-customer baseline. If it is flagged it changes tactics and goes again.
+Success is three unflagged rounds in a row with the same tactics.
+
+Three attackers, three trials each:
+
+| Attacker | Fully evaded | First unflagged round |
+|---|---|---|
+| **Informed:** sees which signals fired and reacts to each | 3 of 3 | round 3 |
+| **Blind:** sees only "flagged or not", changes one tactic at random | 0 of 3 | none in 12 rounds |
+| **Prior knowledge:** no feedback, starts with the standard countermeasures | 3 of 3 | **round 1** |
+
+![Signals fired and boundary information gained, per round, for the three attackers](eval/figures/adaptive_attacker.png)
+
+The informed attacker was caught twice, then switched to more seeds, more edits
+per probe, no repeated queries, a much bigger substitution vocabulary and
+human-looking timing. That was enough. The blind attacker failed, but only
+because it picks tactics at random. The third attacker shows what that means: one
+that never sees any feedback and simply uses those same countermeasures from the
+start was **never flagged in any round of any trial**. At most one signal fired,
+and it takes two.
+
+So keeping the detector's reasons secret does not decide anything. The ten
+signals are described in this README, and an attacker who reads it knows what to
+avoid. Evasion also did not cost the attacker anything by the measure used here.
+Label flips (edited queries whose answer differs from their own seed's, which is
+real information about the decision boundary) averaged 0.3 per round for the
+naive attacker and 2 to 3 for the evaders, because more edits per probe finds
+more flips.
+
+One real bug came out of this. The API's 429 response used to include the list of
+signals that got a key blocked, which is exactly the feedback the informed
+attacker needed. It stayed in `blocked.json` for the operator but should never
+have been sent to the client. It now returns a generic message, and a test checks
+that no reason leaks. That would have saved an attacker about two rounds, not
+changed the outcome.
+
+Honest limits: this is one type of attacker, three trials each, and the flip
+counts are small and noisy (0 to 6 per round). The attacker rotates to a fresh
+key every round. Timing evasion is easy here partly because the benign timing
+comes from our own generator. I have not tried any fixes. Ideas worth testing
+are keeping cutoffs secret or varying them per key, and signals that are costly
+to imitate, such as how much of the input space all customers together cover.
+
+```bash
+.venv/Scripts/python.exe eval/adaptive_attacker.py --trials 3 --max-rounds 12
+```
+
+Needs the DistilBERT API running. It takes a few minutes.
+
+## How fast is it?
+
+`eval/bench_throughput.py` measures the detector and the API separately, because
+they have different limits. Measured on a 12-thread Windows laptop.
+
+**The detector** parses a log, groups it by key, builds 30-request windows,
+computes the ten signals and applies the rule. No API or model involved.
+
+| Requests in log | Total time | Throughput |
+|---|---|---|
+| 10,000 | 0.32 s | 31,600 requests/s |
+| 100,000 | 4.9 s | 20,400 requests/s |
+| 500,000 | 21.6 s | 23,200 requests/s |
+
+Computing all ten signals for one window takes under a millisecond. That is more
+than a thousand times faster than the model it protects can answer (DistilBERT
+takes a median of 76 ms per request here, about 13 requests a second, and
+RoBERTa 332 ms, about 3 a second), so detection is never the bottleneck.
+
+**A bug this found.** `--watch` used to re-read and rescore the entire log every
+few seconds. That is fine at first and quietly stops working: a 100,000-request
+log took 3 to 5 seconds per cycle, at or above the default 3 second interval, and
+500,000 took over 20. It now remembers where it stopped reading, parses only new
+lines, and rescores only the clients that sent them. A cycle on a 100,000-request
+log went from 3.15 s to 42 ms, about 76 times faster. A replay of real logged
+clients through the new watcher blocked exactly the same two attackers as the
+one-shot scorer, and nine tests cover partial lines, Windows line endings,
+rotated files and late-arriving rows. The catch is that it keeps every row in
+memory, so a very long watch uses memory in proportion to the log.
+
+**The API**, with the stub model so inference is excluded:
+
+| Log durability | Requests/s | p50 latency |
+|---|---|---|
+| fsync every line (default) | 357 to 596 | 14 to 25 ms |
+| no fsync (`LOG_FSYNC=0`) | 465 to 749 | 9 to 17 ms |
+
+The ranges are two separate runs on the same machine, which differed by about
+1.7 times, so treat these as a rough range and not a precise figure. Both times
+the fsync cost about a fifth of throughput. The default keeps it, because losing
+audit lines when the process crashes is worse than being a bit slower.
+
+```bash
+.venv/Scripts/python.exe eval/bench_throughput.py
+```
+
 ## Results on synthetic traffic
 
 These are the earlier numbers, from template-generated customers and attackers.
@@ -710,13 +885,20 @@ right call against attackers who pad their traffic, but it means a client with
 lots of windows gets more rolls of the dice. A fairer rule for high-volume
 clients is an open question.
 
-**Two signals do a lot of the work, and both are shaky.** The confidence signal
-works well because this particular model is very sure of itself on ordinary
-text (over 0.99 almost always), which makes probing queries stand out. A
-better-calibrated model would blunt it. The burstiness signal leans on benign
-clients being bursty, which is as much a property of our generator as of real
-people, and it drifts if the calibration clients ran at a different pace from
-the ones being judged.
+**Two signals do the work, and they are easy to imitate.** `near_dup_rate` and
+`herdan_c` are what catch anyone: removing either loses attackers on both
+victim models. An attacker who spreads its probes over more seeds and draws
+from a bigger vocabulary stops triggering them (see Red-teaming the detector).
+Earlier versions of this README blamed the detector's fragility on the
+confidence signal, which turned out to be wrong. The burstiness signal leans
+on benign clients being bursty, which is as much a property of our generator
+as of real people, and it drifts if the calibration clients ran at a different
+pace from the ones being judged.
+
+**An attacker who knows the signals gets past it.** The ten signals are
+described in this README. A boundary prober using the obvious countermeasures
+was never flagged, with no feedback needed, and it still learned about the
+boundary. I haven't tested any fix.
 
 **Automated doesn't mean malicious.** The false alarm above was a service
 account. In earlier testing, calibrating a separate baseline for service
@@ -737,9 +919,13 @@ a lot.
 
 **We only tested the attacks we thought of.** Calibrating on normal traffic
 only limits the damage, since the detector never sees our attacks while
-learning, but it doesn't remove it. An attacker pulling real sentences from a
-real corpus at human speed hasn't been tried, and the margins on our closest
-cases were thin enough that it might get through.
+learning, but it doesn't remove it. The real-text attackers are ours too, and
+the red-team run shows an attacker who knows the signals beats them. Only one
+kind of adaptive attacker has been tried, three times each.
+
+**Live watching keeps every row in memory.** The incremental reader remembers
+each client's whole history so the worst window still counts. That is fine for
+the scale tested and grows with the log for a very long run.
 
 **The synthetic stolen-copy numbers are optimistic for the attacker.** The held-out set
 is built from the same templates the attacker queries with, and the student is
