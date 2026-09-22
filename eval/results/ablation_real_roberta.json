@@ -5,7 +5,7 @@
   "runs": [
     {
       "config": "all signals",
-      "signals": 10,
+      "signals": 11,
       "caught": 3,
       "attackers": 10,
       "false_alarms": 0,
@@ -13,7 +13,7 @@
     },
     {
       "config": "drop exact_dup_rate",
-      "signals": 9,
+      "signals": 10,
       "caught": 3,
       "attackers": 10,
       "false_alarms": 0,
@@ -21,23 +21,23 @@
     },
     {
       "config": "drop near_dup_rate",
-      "signals": 9,
-      "caught": 2,
+      "signals": 10,
+      "caught": 3,
       "attackers": 10,
       "false_alarms": 0,
       "customers": 10
     },
     {
       "config": "drop herdan_c",
-      "signals": 9,
-      "caught": 2,
+      "signals": 10,
+      "caught": 3,
       "attackers": 10,
       "false_alarms": 0,
       "customers": 10
     },
     {
       "config": "drop token_entropy_norm",
-      "signals": 9,
+      "signals": 10,
       "caught": 3,
       "attackers": 10,
       "false_alarms": 0,
@@ -45,7 +45,7 @@
     },
     {
       "config": "drop len_cv",
-      "signals": 9,
+      "signals": 10,
       "caught": 3,
       "attackers": 10,
       "false_alarms": 0,
@@ -53,7 +53,7 @@
     },
     {
       "config": "drop template_share",
-      "signals": 9,
+      "signals": 10,
       "caught": 3,
       "attackers": 10,
       "false_alarms": 0,
@@ -61,7 +61,7 @@
     },
     {
       "config": "drop low_conf_rate",
-      "signals": 9,
+      "signals": 10,
       "caught": 3,
       "attackers": 10,
       "false_alarms": 0,
@@ -69,7 +69,7 @@
     },
     {
       "config": "drop conf_p10",
-      "signals": 9,
+      "signals": 10,
       "caught": 3,
       "attackers": 10,
       "false_alarms": 0,
@@ -77,7 +77,7 @@
     },
     {
       "config": "drop iat_burstiness",
-      "signals": 9,
+      "signals": 10,
       "caught": 3,
       "attackers": 10,
       "false_alarms": 0,
@@ -85,7 +85,15 @@
     },
     {
       "config": "drop label_balance",
-      "signals": 9,
+      "signals": 10,
+      "caught": 3,
+      "attackers": 10,
+      "false_alarms": 0,
+      "customers": 10
+    },
+    {
+      "config": "drop edit_neighbour_rate",
+      "signals": 10,
       "caught": 3,
       "attackers": 10,
       "false_alarms": 0,
@@ -93,7 +101,7 @@
     },
     {
       "config": "drop confidence signals",
-      "signals": 8,
+      "signals": 9,
       "caught": 3,
       "attackers": 10,
       "false_alarms": 0,
@@ -101,7 +109,7 @@
     },
     {
       "config": "content only",
-      "signals": 6,
+      "signals": 7,
       "caught": 3,
       "attackers": 10,
       "false_alarms": 0,

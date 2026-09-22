@@ -8,10 +8,10 @@
       "windows": 600,
       "parse_s": 0.05,
       "group_s": 0.0,
-      "score_s": 0.27,
-      "total_s": 0.32,
-      "requests_per_s": 31584,
-      "windows_per_s": 2258
+      "score_s": 0.56,
+      "total_s": 0.61,
+      "requests_per_s": 16409,
+      "windows_per_s": 1074
     },
     {
       "requests": 100000,
@@ -20,48 +20,48 @@
       "windows": 6000,
       "parse_s": 0.37,
       "group_s": 0.02,
-      "score_s": 4.51,
-      "total_s": 4.9,
-      "requests_per_s": 20424,
-      "windows_per_s": 1330
+      "score_s": 14.32,
+      "total_s": 14.71,
+      "requests_per_s": 6798,
+      "windows_per_s": 419
     },
     {
       "requests": 500000,
       "clients": 2500,
       "log_mb": 101.5,
       "windows": 30000,
-      "parse_s": 1.8,
-      "group_s": 0.11,
-      "score_s": 19.66,
-      "total_s": 21.57,
-      "requests_per_s": 23175,
-      "windows_per_s": 1526
+      "parse_s": 8.27,
+      "group_s": 0.36,
+      "score_s": 107.01,
+      "total_s": 115.64,
+      "requests_per_s": 4324,
+      "windows_per_s": 280
     }
   ],
-  "one_window_ms": 0.42,
+  "one_window_ms": 2.39,
   "watch_cycle": {
     "log_requests": 100000,
-    "full_rescan_s": 3.15,
-    "first_poll_s": 4.59,
-    "incremental_cycle_ms": 41.8,
-    "speedup": 76
+    "full_rescan_s": 23.76,
+    "first_poll_s": 13.56,
+    "incremental_cycle_ms": 120.8,
+    "speedup": 197
   },
   "api_stub": {
     "fsync_on": {
-      "requests": 5967,
+      "requests": 3604,
       "errors": 0,
       "seconds": 10.0,
-      "requests_per_s": 596,
-      "p50_ms": 14.1,
-      "p95_ms": 20.2
+      "requests_per_s": 360,
+      "p50_ms": 22.1,
+      "p95_ms": 29.0
     },
     "fsync_off": {
-      "requests": 7496,
+      "requests": 4096,
       "errors": 0,
       "seconds": 10.0,
-      "requests_per_s": 749,
-      "p50_ms": 8.8,
-      "p95_ms": 18.0
+      "requests_per_s": 409,
+      "p50_ms": 18.6,
+      "p95_ms": 27.3
     }
   },
   "real_model": {

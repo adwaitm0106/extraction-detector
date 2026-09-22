@@ -2,9 +2,9 @@ Baseline: 24 windows from 8 real customers. Flag at z >= 3.5 on >= 2 signals.
 
 | Client | Group | Requests | Signals | Verdict | Strongest signals |
 |---|---|---|---|---|---|
-| `atk-probe-yelp` | attacker | 60 | 4 | ATTACK | herdan_c (11.9), label_balance (6.1), near_dup_rate (5.3) |
-| `atk-probe-twitter` | attacker | 60 | 3 | ATTACK | herdan_c (12.5), label_balance (8.8), near_dup_rate (5.3) |
-| `atk-template-boundary` | attacker | 60 | 2 | ATTACK | herdan_c (11.9), near_dup_rate (5.0) |
+| `atk-probe-yelp` | attacker | 60 | 5 | ATTACK | edit_neighbour_rate (30.0), herdan_c (11.9), label_balance (6.1) |
+| `atk-probe-twitter` | attacker | 60 | 4 | ATTACK | edit_neighbour_rate (30.0), herdan_c (12.5), label_balance (8.8) |
+| `atk-template-boundary` | attacker | 60 | 3 | ATTACK | edit_neighbour_rate (30.0), herdan_c (11.7), near_dup_rate (5.3) |
 | `atk-harvest-mixed` | attacker | 60 | 0 | benign | none |
 | `atk-harvest-split-a` | attacker | 30 | 0 | benign | none |
 | `atk-harvest-split-b` | attacker | 30 | 0 | benign | none |
@@ -37,3 +37,4 @@ Attackers caught: **3 of 10**. False alarms: **0 of 8** customers on seen source
 | `conf_p10` | 1 / 10 | 0 / 10 |
 | `iat_burstiness` | 0 / 10 | 1 / 10 |
 | `label_balance` | 2 / 10 | 0 / 10 |
+| `edit_neighbour_rate` | 3 / 10 | 0 / 10 |

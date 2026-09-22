@@ -1,0 +1,3151 @@
+{
+  "queries_per_round": 60,
+  "confirm_rounds": 3,
+  "max_rounds": 12,
+  "min_flags": 2,
+  "signals": 11,
+  "summary": {
+    "informed": {
+      "trials": 5,
+      "evaded": 5,
+      "evaded_with_linkage": 5,
+      "median_first_unflagged_round": 3,
+      "rounds_range": [
+        3,
+        4
+      ],
+      "median_queries_spent": 360,
+      "density_start": 1.0,
+      "density_evaded": 0.89,
+      "flips_start": 1,
+      "flips_evaded": 7.6
+    },
+    "blind": {
+      "trials": 5,
+      "evaded": 0,
+      "evaded_with_linkage": 0,
+      "median_first_unflagged_round": null,
+      "rounds_range": null,
+      "median_queries_spent": 720,
+      "density_start": 1.0,
+      "density_evaded": null,
+      "flips_start": 1,
+      "flips_evaded": null
+    },
+    "prior": {
+      "trials": 5,
+      "evaded": 3,
+      "evaded_with_linkage": 3,
+      "median_first_unflagged_round": 1,
+      "rounds_range": [
+        1,
+        1
+      ],
+      "median_queries_spent": 180,
+      "density_start": 1.0,
+      "density_evaded": 1.0,
+      "flips_start": 3,
+      "flips_evaded": 1.6666666666666667
+    },
+    "prior_new": {
+      "trials": 5,
+      "evaded": 2,
+      "evaded_with_linkage": 2,
+      "median_first_unflagged_round": 1,
+      "rounds_range": [
+        1,
+        2
+      ],
+      "median_queries_spent": 180,
+      "density_start": 0.8266666666666667,
+      "density_evaded": 0.8416666666666667,
+      "flips_start": 10.2,
+      "flips_evaded": 14
+    },
+    "split": {
+      "trials": 5,
+      "evaded": 5,
+      "evaded_with_linkage": 0,
+      "median_first_unflagged_round": 1,
+      "rounds_range": [
+        1,
+        1
+      ],
+      "median_queries_spent": 180,
+      "density_start": 0.9933333333333333,
+      "density_evaded": 0.9866666666666667,
+      "flips_start": 3.2,
+      "flips_evaded": 3.6
+    }
+  },
+  "trials": [
+    {
+      "mode": "informed",
+      "trial": 0,
+      "evaded": true,
+      "evaded_with_linkage": true,
+      "first_unflagged_round": 3,
+      "rounds_played": 5,
+      "queries_spent": 300,
+      "history": [
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant seedq=y keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "template_share",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 1,
+          "probe_density": 1.0,
+          "probe_similarity": 0.974500088767937,
+          "unique_queries": 58,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 1,
+          "adapted": [
+            "dedupe",
+            "edits",
+            "hide_seeds",
+            "pacing",
+            "seeds",
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=3 vocab=80 dedupe=y lengths=narrow pacing=poisson seedq=n keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "near_dup_rate",
+            "herdan_c",
+            "iat_burstiness"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 4,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9279749062166355,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 2,
+          "adapted": [
+            "dedupe",
+            "edits",
+            "hide_seeds",
+            "pacing",
+            "seeds",
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=24 edits=5 vocab=320 dedupe=y lengths=narrow pacing=bursty seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 3,
+          "probe_density": 1.0,
+          "probe_similarity": 0.8804157705500892,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 3,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=5 vocab=320 dedupe=y lengths=narrow pacing=bursty seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 8,
+          "probe_density": 1.0,
+          "probe_similarity": 0.8867076374053751,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 4,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=5 vocab=320 dedupe=y lengths=narrow pacing=bursty seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 5,
+          "probe_density": 1.0,
+          "probe_similarity": 0.8893754447184956,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 5,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "informed",
+      "trial": 1,
+      "evaded": true,
+      "evaded_with_linkage": true,
+      "first_unflagged_round": 4,
+      "rounds_played": 6,
+      "queries_spent": 360,
+      "history": [
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant seedq=y keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 0,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9753194136154005,
+          "unique_queries": 57,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 1,
+          "adapted": [
+            "dedupe",
+            "edits",
+            "hide_seeds",
+            "pacing",
+            "seeds",
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=3 vocab=80 dedupe=y lengths=narrow pacing=poisson seedq=n keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "near_dup_rate",
+            "herdan_c"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 0,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9310316402425808,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 2,
+          "adapted": [
+            "dedupe",
+            "edits",
+            "hide_seeds",
+            "seeds",
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=24 edits=5 vocab=320 dedupe=y lengths=narrow pacing=poisson seedq=n keys=1",
+          "signals_fired": 2,
+          "flagged": [
+            "edit_neighbour_rate",
+            "conf_p10"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 5,
+          "probe_density": 1.0,
+          "probe_similarity": 0.8874141173718159,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 3,
+          "adapted": [
+            "edits",
+            "hide_seeds",
+            "mixed"
+          ]
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 11,
+          "probe_density": 0.6833333333333333,
+          "probe_similarity": 0.8014330286110791,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 4,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 11,
+          "probe_density": 0.7166666666666667,
+          "probe_similarity": 0.766526371946154,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 5,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 9,
+          "probe_density": 0.85,
+          "probe_similarity": 0.8298571684712419,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 6,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "informed",
+      "trial": 2,
+      "evaded": true,
+      "evaded_with_linkage": true,
+      "first_unflagged_round": 4,
+      "rounds_played": 6,
+      "queries_spent": 360,
+      "history": [
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant seedq=y keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 0,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9777960890502959,
+          "unique_queries": 56,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 1,
+          "adapted": [
+            "dedupe",
+            "edits",
+            "hide_seeds",
+            "pacing",
+            "seeds",
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=3 vocab=80 dedupe=y lengths=narrow pacing=poisson seedq=n keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "near_dup_rate",
+            "herdan_c"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 3,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9273164141994249,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 2,
+          "adapted": [
+            "dedupe",
+            "edits",
+            "hide_seeds",
+            "seeds",
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=24 edits=5 vocab=320 dedupe=y lengths=narrow pacing=poisson seedq=n keys=1",
+          "signals_fired": 2,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 12,
+          "probe_density": 1.0,
+          "probe_similarity": 0.8796123532293559,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 3,
+          "adapted": [
+            "edits",
+            "hide_seeds",
+            "pacing"
+          ]
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=narrow pacing=bursty seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 6,
+          "probe_density": 1.0,
+          "probe_similarity": 0.8622064192980122,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 4,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=narrow pacing=bursty seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 8,
+          "probe_density": 1.0,
+          "probe_similarity": 0.859602548294316,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 5,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=narrow pacing=bursty seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 6,
+          "probe_density": 1.0,
+          "probe_similarity": 0.8622205718733127,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 6,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "informed",
+      "trial": 3,
+      "evaded": true,
+      "evaded_with_linkage": true,
+      "first_unflagged_round": 3,
+      "rounds_played": 8,
+      "queries_spent": 480,
+      "history": [
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant seedq=y keys=1",
+          "signals_fired": 6,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "label_balance",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 2,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9736769110083567,
+          "unique_queries": 58,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 1,
+          "adapted": [
+            "dedupe",
+            "edits",
+            "hide_seeds",
+            "mixed",
+            "pacing",
+            "seeds",
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=3 vocab=80 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "conf_p10",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 5,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9048203552114756,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 2,
+          "adapted": [
+            "dedupe",
+            "edits",
+            "hide_seeds",
+            "mixed",
+            "seeds",
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=24 edits=5 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 11,
+          "probe_density": 0.85,
+          "probe_similarity": 0.841255079921348,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 3,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=5 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 2,
+          "flagged": [
+            "edit_neighbour_rate",
+            "len_cv"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 12,
+          "probe_density": 0.6,
+          "probe_similarity": 0.7780690384222124,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 4,
+          "adapted": [
+            "edits",
+            "hide_seeds",
+            "lengths"
+          ]
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 2,
+          "flagged": [
+            "edit_neighbour_rate",
+            "conf_p10"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 18,
+          "probe_density": 0.7666666666666667,
+          "probe_similarity": 0.8263883155083576,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 5,
+          "adapted": [
+            "edits",
+            "hide_seeds",
+            "mixed"
+          ]
+        },
+        {
+          "tactics": "seeds=24 edits=7 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 9,
+          "probe_density": 0.7666666666666667,
+          "probe_similarity": 0.8126123660619659,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 6,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=7 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 9,
+          "probe_density": 0.8333333333333334,
+          "probe_similarity": 0.8244404274620946,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 7,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=7 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 12,
+          "probe_density": 0.7333333333333333,
+          "probe_similarity": 0.7841100857526891,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 8,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "informed",
+      "trial": 4,
+      "evaded": true,
+      "evaded_with_linkage": true,
+      "first_unflagged_round": 3,
+      "rounds_played": 8,
+      "queries_spent": 480,
+      "history": [
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant seedq=y keys=1",
+          "signals_fired": 6,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "label_balance",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 2,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9732762833322893,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 1,
+          "adapted": [
+            "dedupe",
+            "edits",
+            "hide_seeds",
+            "mixed",
+            "pacing",
+            "seeds",
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=3 vocab=80 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 11,
+          "probe_density": 0.9833333333333333,
+          "probe_similarity": 0.8919361352588474,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 2,
+          "adapted": [
+            "dedupe",
+            "edits",
+            "hide_seeds",
+            "seeds",
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=24 edits=5 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 7,
+          "probe_density": 0.9166666666666666,
+          "probe_similarity": 0.8613634462862386,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 3,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=5 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 9,
+          "probe_density": 0.8,
+          "probe_similarity": 0.8089788070821797,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 4,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=5 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 2,
+          "flagged": [
+            "edit_neighbour_rate",
+            "len_cv"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 4,
+          "probe_density": 0.7,
+          "probe_similarity": 0.7892923075052803,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 5,
+          "adapted": [
+            "edits",
+            "hide_seeds",
+            "lengths"
+          ]
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 12,
+          "probe_density": 0.85,
+          "probe_similarity": 0.8464586172424601,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 6,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 8,
+          "probe_density": 0.95,
+          "probe_similarity": 0.8712941413257015,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 7,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 6,
+          "probe_density": 0.8666666666666667,
+          "probe_similarity": 0.8270192878514836,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 8,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "blind",
+      "trial": 0,
+      "evaded": false,
+      "evaded_with_linkage": false,
+      "first_unflagged_round": null,
+      "rounds_played": 12,
+      "queries_spent": 720,
+      "history": [
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant seedq=y keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "template_share",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 1,
+          "probe_density": 1.0,
+          "probe_similarity": 0.974500088767937,
+          "unique_queries": 58,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 1,
+          "adapted": [
+            "lengths"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=varied pacing=constant seedq=y keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 4,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9506763238674852,
+          "unique_queries": 56,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 2,
+          "adapted": [
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=80 dedupe=n lengths=varied pacing=constant seedq=y keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "template_share",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 13,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9514875601837596,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 3,
+          "adapted": [
+            "hide_seeds"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=80 dedupe=n lengths=varied pacing=constant seedq=n keys=1",
+          "signals_fired": 6,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "label_balance",
+            "conf_p10"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 13,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9689808304064897,
+          "unique_queries": 56,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 4,
+          "adapted": [
+            "hide_seeds"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=80 dedupe=n lengths=varied pacing=constant seedq=n keys=1",
+          "signals_fired": 6,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "template_share",
+            "near_dup_rate",
+            "label_balance"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 2,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9748586469832922,
+          "unique_queries": 58,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 5,
+          "adapted": [
+            "dedupe"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=80 dedupe=y lengths=varied pacing=constant seedq=n keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 4,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9648174205962411,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 6,
+          "adapted": [
+            "pacing"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=80 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 5,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9639499638716831,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 7,
+          "adapted": [
+            "mixed"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=80 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 1,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9796755078838527,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 8,
+          "adapted": [
+            "pacing"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=80 dedupe=y lengths=varied pacing=bursty seedq=n keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "template_share",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 3,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9234519417351155,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 9,
+          "adapted": [
+            "edits"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=2 vocab=80 dedupe=y lengths=varied pacing=bursty seedq=n keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "label_balance",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 0,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9436000670490653,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 10,
+          "adapted": [
+            "pacing"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=2 vocab=80 dedupe=y lengths=varied pacing=bursty seedq=n keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate",
+            "label_balance"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 2,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9566153535445608,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 11,
+          "adapted": [
+            "lengths"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=2 vocab=80 dedupe=y lengths=varied pacing=bursty seedq=n keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "len_cv",
+            "label_balance",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 5,
+          "probe_density": 1.0,
+          "probe_similarity": 0.8527653931336434,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 12,
+          "adapted": [
+            "pacing"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "blind",
+      "trial": 1,
+      "evaded": false,
+      "evaded_with_linkage": false,
+      "first_unflagged_round": null,
+      "rounds_played": 12,
+      "queries_spent": 720,
+      "history": [
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant seedq=y keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 0,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9753194136154005,
+          "unique_queries": 57,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 1,
+          "adapted": [
+            "mixed"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=varied pacing=constant seedq=y keys=1",
+          "signals_fired": 6,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "label_balance",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 2,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9629176635013101,
+          "unique_queries": 56,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 2,
+          "adapted": [
+            "mixed"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=varied pacing=constant seedq=y keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "len_cv"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 5,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9468777311185048,
+          "unique_queries": 56,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 3,
+          "adapted": [
+            "pacing"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=varied pacing=poisson seedq=y keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate",
+            "conf_p10"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 5,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9840727095915984,
+          "unique_queries": 59,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 4,
+          "adapted": [
+            "pacing"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=varied pacing=bursty seedq=y keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 0,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9552168615857861,
+          "unique_queries": 57,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 5,
+          "adapted": [
+            "pacing"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=varied pacing=bursty seedq=y keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "template_share",
+            "near_dup_rate",
+            "conf_p10"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 7,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9757633400593768,
+          "unique_queries": 58,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 6,
+          "adapted": [
+            "seeds"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=1 vocab=20 dedupe=n lengths=varied pacing=bursty seedq=y keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 1,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9622650569963801,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 7,
+          "adapted": [
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=1 vocab=80 dedupe=n lengths=varied pacing=bursty seedq=y keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 0,
+          "probe_density": 1.0,
+          "probe_similarity": 0.976085609837831,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 8,
+          "adapted": [
+            "lengths"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=1 vocab=80 dedupe=n lengths=varied pacing=bursty seedq=y keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate",
+            "conf_p10"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 8,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9459187488168088,
+          "unique_queries": 57,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 9,
+          "adapted": [
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=1 vocab=320 dedupe=n lengths=varied pacing=bursty seedq=y keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate",
+            "conf_p10"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 3,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9690198873670476,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 10,
+          "adapted": [
+            "seeds"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=1 vocab=320 dedupe=n lengths=varied pacing=bursty seedq=y keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 1,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9706630391937575,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 11,
+          "adapted": [
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=1 vocab=1280 dedupe=n lengths=varied pacing=bursty seedq=y keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 4,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9623917239080293,
+          "unique_queries": 59,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 12,
+          "adapted": [
+            "edits"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "blind",
+      "trial": 2,
+      "evaded": false,
+      "evaded_with_linkage": false,
+      "first_unflagged_round": null,
+      "rounds_played": 12,
+      "queries_spent": 720,
+      "history": [
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant seedq=y keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 0,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9777960890502959,
+          "unique_queries": 56,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 1,
+          "adapted": [
+            "seeds"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant seedq=y keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 0,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9751155788418797,
+          "unique_queries": 57,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 2,
+          "adapted": [
+            "dedupe"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=1 vocab=20 dedupe=y lengths=narrow pacing=constant seedq=y keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 3,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9730481804759822,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 3,
+          "adapted": [
+            "dedupe"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=1 vocab=20 dedupe=y lengths=narrow pacing=constant seedq=y keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 1,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9730081585220038,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 4,
+          "adapted": [
+            "mixed"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=1 vocab=20 dedupe=y lengths=varied pacing=constant seedq=y keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "conf_p10"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 7,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9733671603558467,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 5,
+          "adapted": [
+            "edits"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=2 vocab=20 dedupe=y lengths=varied pacing=constant seedq=y keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "conf_p10"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 15,
+          "probe_density": 1.0,
+          "probe_similarity": 0.93942548746307,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 6,
+          "adapted": [
+            "seeds"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=20 dedupe=y lengths=varied pacing=constant seedq=y keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "conf_p10",
+            "near_dup_rate",
+            "herdan_c"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 5,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9434683652588115,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 7,
+          "adapted": [
+            "lengths"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=20 dedupe=y lengths=varied pacing=constant seedq=y keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 4,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9500151772337749,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 8,
+          "adapted": [
+            "pacing"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=20 dedupe=y lengths=varied pacing=poisson seedq=y keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate",
+            "len_cv"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 4,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9152875229232906,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 9,
+          "adapted": [
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=80 dedupe=y lengths=varied pacing=poisson seedq=y keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 4,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9341331026520446,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 10,
+          "adapted": [
+            "mixed"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=2 vocab=80 dedupe=y lengths=varied pacing=poisson seedq=y keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "near_dup_rate",
+            "herdan_c"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 5,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9352355833178219,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 11,
+          "adapted": [
+            "edits"
+          ]
+        },
+        {
+          "tactics": "seeds=12 edits=3 vocab=80 dedupe=y lengths=varied pacing=poisson seedq=y keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "near_dup_rate",
+            "herdan_c"
+          ],
+          "caught": true,
+          "edited_queries": 48,
+          "label_flips": 3,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9045921282248639,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 12,
+          "adapted": [
+            "seeds"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "blind",
+      "trial": 3,
+      "evaded": false,
+      "evaded_with_linkage": false,
+      "first_unflagged_round": null,
+      "rounds_played": 12,
+      "queries_spent": 720,
+      "history": [
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant seedq=y keys=1",
+          "signals_fired": 6,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "label_balance",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 2,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9736769110083567,
+          "unique_queries": 58,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 1,
+          "adapted": [
+            "hide_seeds"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant seedq=n keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 5,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9745374160799772,
+          "unique_queries": 58,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 2,
+          "adapted": [
+            "pacing"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=poisson seedq=n keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "template_share",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 0,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9733123529330777,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 3,
+          "adapted": [
+            "lengths"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "template_share",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 3,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9662420953095532,
+          "unique_queries": 57,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 4,
+          "adapted": [
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=80 dedupe=n lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 0,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9828811920896917,
+          "unique_queries": 59,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 5,
+          "adapted": [
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=1 vocab=320 dedupe=n lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 4,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9678737594830074,
+          "unique_queries": 57,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 6,
+          "adapted": [
+            "seeds"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=1 vocab=320 dedupe=n lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 0,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9609723200310467,
+          "unique_queries": 59,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 7,
+          "adapted": [
+            "dedupe"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=1 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 1,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9598752201229208,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 8,
+          "adapted": [
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=1 vocab=1280 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 6,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9588984794773358,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 9,
+          "adapted": [
+            "pacing"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=1 vocab=1280 dedupe=y lengths=varied pacing=bursty seedq=n keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 2,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9721797949910763,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 10,
+          "adapted": [
+            "edits"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=2 vocab=1280 dedupe=y lengths=varied pacing=bursty seedq=n keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate",
+            "conf_p10",
+            "len_cv"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 10,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9170429777290438,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 11,
+          "adapted": [
+            "lengths"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=2 vocab=1280 dedupe=y lengths=varied pacing=bursty seedq=n keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate",
+            "label_balance"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 5,
+          "probe_density": 1.0,
+          "probe_similarity": 0.946154190583697,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 12,
+          "adapted": [
+            "lengths"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "blind",
+      "trial": 4,
+      "evaded": false,
+      "evaded_with_linkage": false,
+      "first_unflagged_round": null,
+      "rounds_played": 12,
+      "queries_spent": 720,
+      "history": [
+        {
+          "tactics": "seeds=3 edits=1 vocab=20 dedupe=n lengths=narrow pacing=constant seedq=y keys=1",
+          "signals_fired": 6,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "label_balance",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 2,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9732762833322893,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 1,
+          "adapted": [
+            "edits"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=2 vocab=20 dedupe=n lengths=narrow pacing=constant seedq=y keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness",
+            "herdan_c",
+            "near_dup_rate",
+            "label_balance"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 2,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9487846170714961,
+          "unique_queries": 59,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 2,
+          "adapted": [
+            "pacing"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=2 vocab=20 dedupe=n lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate",
+            "label_balance"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 5,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9509540524268794,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 3,
+          "adapted": [
+            "dedupe"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=2 vocab=20 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 5,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate",
+            "iat_burstiness",
+            "conf_p10"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 5,
+          "probe_density": 1.0,
+          "probe_similarity": 0.95599816314468,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 4,
+          "adapted": [
+            "dedupe"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=2 vocab=20 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 2,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9517662900308476,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 5,
+          "adapted": [
+            "vocab"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=2 vocab=80 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 0,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9535388307589541,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 6,
+          "adapted": [
+            "dedupe"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=2 vocab=80 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 3,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9520517380115331,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 7,
+          "adapted": [
+            "dedupe"
+          ]
+        },
+        {
+          "tactics": "seeds=3 edits=2 vocab=80 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 4,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate",
+            "template_share"
+          ],
+          "caught": true,
+          "edited_queries": 57,
+          "label_flips": 0,
+          "probe_density": 1.0,
+          "probe_similarity": 0.947355841657929,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 8,
+          "adapted": [
+            "seeds"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=2 vocab=80 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 6,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9495799382243911,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 9,
+          "adapted": [
+            "pacing"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=2 vocab=80 dedupe=y lengths=narrow pacing=bursty seedq=y keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 1,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9523188956934955,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 10,
+          "adapted": [
+            "dedupe"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=2 vocab=80 dedupe=y lengths=narrow pacing=bursty seedq=y keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 0,
+          "probe_density": 1.0,
+          "probe_similarity": 0.956430603409712,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 11,
+          "adapted": [
+            "edits"
+          ]
+        },
+        {
+          "tactics": "seeds=6 edits=3 vocab=80 dedupe=y lengths=narrow pacing=bursty seedq=y keys=1",
+          "signals_fired": 3,
+          "flagged": [
+            "edit_neighbour_rate",
+            "herdan_c",
+            "near_dup_rate"
+          ],
+          "caught": true,
+          "edited_queries": 54,
+          "label_flips": 0,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9344563897506513,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 12,
+          "adapted": [
+            "dedupe"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "prior",
+      "trial": 0,
+      "evaded": false,
+      "evaded_with_linkage": false,
+      "first_unflagged_round": 1,
+      "rounds_played": 3,
+      "queries_spent": 180,
+      "history": [
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 3,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9288737519590884,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 1,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 1,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9295190565503679,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 2,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 2,
+          "flagged": [
+            "edit_neighbour_rate",
+            "conf_p10"
+          ],
+          "caught": true,
+          "edited_queries": 36,
+          "label_flips": 5,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9276064559616437,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 3,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "prior",
+      "trial": 1,
+      "evaded": false,
+      "evaded_with_linkage": false,
+      "first_unflagged_round": 1,
+      "rounds_played": 3,
+      "queries_spent": 180,
+      "history": [
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 1,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9269652087080413,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 1,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 1,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9308034995102406,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 2,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 2,
+          "flagged": [
+            "edit_neighbour_rate",
+            "conf_p10"
+          ],
+          "caught": true,
+          "edited_queries": 36,
+          "label_flips": 3,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9277609028115632,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 3,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "prior",
+      "trial": 2,
+      "evaded": true,
+      "evaded_with_linkage": true,
+      "first_unflagged_round": 1,
+      "rounds_played": 3,
+      "queries_spent": 180,
+      "history": [
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 4,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9297216503791639,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 1,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 3,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9269879341096205,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 2,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 0,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9272053551412821,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 3,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "prior",
+      "trial": 3,
+      "evaded": true,
+      "evaded_with_linkage": true,
+      "first_unflagged_round": 1,
+      "rounds_played": 3,
+      "queries_spent": 180,
+      "history": [
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 2,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9243610816265918,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 1,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 2,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9304825483777274,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 2,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 1,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9259074953230738,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 3,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "prior",
+      "trial": 4,
+      "evaded": true,
+      "evaded_with_linkage": true,
+      "first_unflagged_round": 1,
+      "rounds_played": 3,
+      "queries_spent": 180,
+      "history": [
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 5,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9273963636935771,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 1,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 4,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9334111152653434,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 2,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=3 vocab=320 dedupe=y lengths=narrow pacing=poisson seedq=y keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 36,
+          "label_flips": 4,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9286888431536078,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 3,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "prior_new",
+      "trial": 0,
+      "evaded": true,
+      "evaded_with_linkage": true,
+      "first_unflagged_round": 1,
+      "rounds_played": 3,
+      "queries_spent": 180,
+      "history": [
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 8,
+          "probe_density": 0.8,
+          "probe_similarity": 0.8074825899798198,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 1,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 2,
+          "probe_density": 0.8666666666666667,
+          "probe_similarity": 0.8342145607460221,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 2,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 21,
+          "probe_density": 0.85,
+          "probe_similarity": 0.8353373253625804,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 3,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "prior_new",
+      "trial": 1,
+      "evaded": false,
+      "evaded_with_linkage": false,
+      "first_unflagged_round": 1,
+      "rounds_played": 3,
+      "queries_spent": 180,
+      "history": [
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 12,
+          "probe_density": 0.8666666666666667,
+          "probe_similarity": 0.8337873293828257,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 1,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 2,
+          "flagged": [
+            "edit_neighbour_rate",
+            "conf_p10"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 8,
+          "probe_density": 0.8166666666666667,
+          "probe_similarity": 0.8353784666801073,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 2,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 6,
+          "probe_density": 0.7333333333333333,
+          "probe_similarity": 0.8317617057475803,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 3,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "prior_new",
+      "trial": 2,
+      "evaded": false,
+      "evaded_with_linkage": false,
+      "first_unflagged_round": 2,
+      "rounds_played": 3,
+      "queries_spent": 180,
+      "history": [
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 2,
+          "flagged": [
+            "edit_neighbour_rate",
+            "conf_p10"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 12,
+          "probe_density": 0.8166666666666667,
+          "probe_similarity": 0.7926865226926997,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 1,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 5,
+          "probe_density": 0.7,
+          "probe_similarity": 0.8265434931998623,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 2,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 2,
+          "flagged": [
+            "edit_neighbour_rate",
+            "iat_burstiness"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 12,
+          "probe_density": 0.7333333333333333,
+          "probe_similarity": 0.7755602753282194,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 3,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "prior_new",
+      "trial": 3,
+      "evaded": false,
+      "evaded_with_linkage": false,
+      "first_unflagged_round": 1,
+      "rounds_played": 3,
+      "queries_spent": 180,
+      "history": [
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 12,
+          "probe_density": 0.8166666666666667,
+          "probe_similarity": 0.8242495572317573,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 1,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 2,
+          "flagged": [
+            "edit_neighbour_rate",
+            "conf_p10"
+          ],
+          "caught": true,
+          "edited_queries": 60,
+          "label_flips": 10,
+          "probe_density": 0.7333333333333333,
+          "probe_similarity": 0.8010122102892484,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": true,
+          "round": 2,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 6,
+          "probe_density": 0.75,
+          "probe_similarity": 0.7974644200376279,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 3,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "prior_new",
+      "trial": 4,
+      "evaded": true,
+      "evaded_with_linkage": true,
+      "first_unflagged_round": 1,
+      "rounds_played": 3,
+      "queries_spent": 180,
+      "history": [
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 7,
+          "probe_density": 0.8333333333333334,
+          "probe_similarity": 0.8373861637446784,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 1,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 9,
+          "probe_density": 0.8166666666666667,
+          "probe_similarity": 0.8346583480168054,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 2,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=24 edits=6 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=n keys=1",
+          "signals_fired": 1,
+          "flagged": [
+            "edit_neighbour_rate"
+          ],
+          "caught": false,
+          "edited_queries": 60,
+          "label_flips": 7,
+          "probe_density": 0.8333333333333334,
+          "probe_similarity": 0.8582360243106987,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "caught_any": false,
+          "round": 3,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "split",
+      "trial": 0,
+      "evaded": true,
+      "evaded_with_linkage": false,
+      "first_unflagged_round": 1,
+      "rounds_played": 3,
+      "queries_spent": 180,
+      "history": [
+        {
+          "tactics": "seeds=30 edits=3 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=y keys=2",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 30,
+          "label_flips": 2,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9010757054398325,
+          "unique_queries": 60,
+          "campaign_confirmed": true,
+          "linked": true,
+          "pooled_flags": 2,
+          "caught_any": true,
+          "round": 1,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=30 edits=3 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=y keys=2",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 30,
+          "label_flips": 5,
+          "probe_density": 1.0,
+          "probe_similarity": 0.901135339688143,
+          "unique_queries": 60,
+          "campaign_confirmed": true,
+          "linked": true,
+          "pooled_flags": 2,
+          "caught_any": true,
+          "round": 2,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=30 edits=3 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=y keys=2",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 30,
+          "label_flips": 5,
+          "probe_density": 0.9333333333333333,
+          "probe_similarity": 0.8733304009462362,
+          "unique_queries": 60,
+          "campaign_confirmed": true,
+          "linked": true,
+          "pooled_flags": 3,
+          "caught_any": true,
+          "round": 3,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "split",
+      "trial": 1,
+      "evaded": true,
+      "evaded_with_linkage": false,
+      "first_unflagged_round": 1,
+      "rounds_played": 3,
+      "queries_spent": 180,
+      "history": [
+        {
+          "tactics": "seeds=30 edits=3 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=y keys=2",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 30,
+          "label_flips": 5,
+          "probe_density": 0.9666666666666667,
+          "probe_similarity": 0.9163167210238116,
+          "unique_queries": 60,
+          "campaign_confirmed": true,
+          "linked": true,
+          "pooled_flags": 2,
+          "caught_any": true,
+          "round": 1,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=30 edits=3 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=y keys=2",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 30,
+          "label_flips": 2,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9166933446242597,
+          "unique_queries": 60,
+          "campaign_confirmed": true,
+          "linked": true,
+          "pooled_flags": 2,
+          "caught_any": true,
+          "round": 2,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=30 edits=3 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=y keys=2",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 30,
+          "label_flips": 4,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9219824752737321,
+          "unique_queries": 60,
+          "campaign_confirmed": true,
+          "linked": true,
+          "pooled_flags": 3,
+          "caught_any": true,
+          "round": 3,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "split",
+      "trial": 2,
+      "evaded": true,
+      "evaded_with_linkage": false,
+      "first_unflagged_round": 1,
+      "rounds_played": 3,
+      "queries_spent": 180,
+      "history": [
+        {
+          "tactics": "seeds=30 edits=3 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=y keys=2",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 30,
+          "label_flips": 4,
+          "probe_density": 1.0,
+          "probe_similarity": 0.8961556418702427,
+          "unique_queries": 60,
+          "campaign_confirmed": true,
+          "linked": true,
+          "pooled_flags": 3,
+          "caught_any": true,
+          "round": 1,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=30 edits=3 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=y keys=2",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 30,
+          "label_flips": 4,
+          "probe_density": 0.9666666666666667,
+          "probe_similarity": 0.8885686403589362,
+          "unique_queries": 60,
+          "campaign_confirmed": true,
+          "linked": true,
+          "pooled_flags": 2,
+          "caught_any": true,
+          "round": 2,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=30 edits=3 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=y keys=2",
+          "signals_fired": 1,
+          "flagged": [
+            "conf_p10"
+          ],
+          "caught": false,
+          "edited_queries": 30,
+          "label_flips": 5,
+          "probe_density": 1.0,
+          "probe_similarity": 0.8926765848770352,
+          "unique_queries": 60,
+          "campaign_confirmed": true,
+          "linked": true,
+          "pooled_flags": 2,
+          "caught_any": true,
+          "round": 3,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "split",
+      "trial": 3,
+      "evaded": true,
+      "evaded_with_linkage": false,
+      "first_unflagged_round": 1,
+      "rounds_played": 3,
+      "queries_spent": 180,
+      "history": [
+        {
+          "tactics": "seeds=30 edits=3 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=y keys=2",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 30,
+          "label_flips": 2,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9033832342104353,
+          "unique_queries": 60,
+          "campaign_confirmed": true,
+          "linked": true,
+          "pooled_flags": 2,
+          "caught_any": true,
+          "round": 1,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=30 edits=3 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=y keys=2",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 30,
+          "label_flips": 4,
+          "probe_density": 0.9666666666666667,
+          "probe_similarity": 0.8905717855851837,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "linked": true,
+          "pooled_flags": 1,
+          "caught_any": false,
+          "round": 2,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=30 edits=3 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=y keys=2",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 30,
+          "label_flips": 3,
+          "probe_density": 1.0,
+          "probe_similarity": 0.9188794352367515,
+          "unique_queries": 60,
+          "campaign_confirmed": false,
+          "linked": true,
+          "pooled_flags": 1,
+          "caught_any": false,
+          "round": 3,
+          "adapted": []
+        }
+      ]
+    },
+    {
+      "mode": "split",
+      "trial": 4,
+      "evaded": true,
+      "evaded_with_linkage": false,
+      "first_unflagged_round": 1,
+      "rounds_played": 3,
+      "queries_spent": 180,
+      "history": [
+        {
+          "tactics": "seeds=30 edits=3 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=y keys=2",
+          "signals_fired": 1,
+          "flagged": [
+            "conf_p10"
+          ],
+          "caught": false,
+          "edited_queries": 30,
+          "label_flips": 3,
+          "probe_density": 1.0,
+          "probe_similarity": 0.916051400203906,
+          "unique_queries": 60,
+          "campaign_confirmed": true,
+          "linked": true,
+          "pooled_flags": 4,
+          "caught_any": true,
+          "round": 1,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=30 edits=3 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=y keys=2",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 30,
+          "label_flips": 5,
+          "probe_density": 0.9666666666666667,
+          "probe_similarity": 0.905403738133878,
+          "unique_queries": 60,
+          "campaign_confirmed": true,
+          "linked": true,
+          "pooled_flags": 2,
+          "caught_any": true,
+          "round": 2,
+          "adapted": []
+        },
+        {
+          "tactics": "seeds=30 edits=3 vocab=320 dedupe=y lengths=varied pacing=poisson seedq=y keys=2",
+          "signals_fired": 0,
+          "flagged": [],
+          "caught": false,
+          "edited_queries": 30,
+          "label_flips": 1,
+          "probe_density": 1.0,
+          "probe_similarity": 0.8945356417777942,
+          "unique_queries": 60,
+          "campaign_confirmed": true,
+          "linked": true,
+          "pooled_flags": 3,
+          "caught_any": true,
+          "round": 3,
+          "adapted": []
+        }
+      ]
+    }
+  ]
+}

@@ -24,7 +24,7 @@
     "ablation": {
       "all signals": {
         "config": "all signals",
-        "signals": 10,
+        "signals": 11,
         "caught": 3,
         "attackers": 10,
         "false_alarms": 0,
@@ -32,7 +32,7 @@
       },
       "drop confidence signals": {
         "config": "drop confidence signals",
-        "signals": 8,
+        "signals": 9,
         "caught": 3,
         "attackers": 10,
         "false_alarms": 0,
@@ -40,7 +40,7 @@
       },
       "content only": {
         "config": "content only",
-        "signals": 6,
+        "signals": 7,
         "caught": 3,
         "attackers": 10,
         "false_alarms": 0,
@@ -82,7 +82,7 @@
     "ablation": {
       "all signals": {
         "config": "all signals",
-        "signals": 10,
+        "signals": 11,
         "caught": 3,
         "attackers": 10,
         "false_alarms": 0,
@@ -90,7 +90,7 @@
       },
       "drop confidence signals": {
         "config": "drop confidence signals",
-        "signals": 8,
+        "signals": 9,
         "caught": 3,
         "attackers": 10,
         "false_alarms": 0,
@@ -98,7 +98,7 @@
       },
       "content only": {
         "config": "content only",
-        "signals": 6,
+        "signals": 7,
         "caught": 3,
         "attackers": 10,
         "false_alarms": 0,
