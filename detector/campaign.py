@@ -262,7 +262,7 @@ def main():
         pooled = score_client(pooled_rows, cal["features"], cal["window"],
                               cal["stride"], rng)
         individually = [per_key.get(k, "?") for k in g]
-        confirmed = pooled is not None and pooled["n_flags"] >= MIN_FLAGS
+        confirmed = pooled is not None and pooled["verdict"] == "ATTACK"
 
         print("group of %d: %s" % (len(g), ", ".join(g)))
         print("  members individually : %s" % ", ".join(individually))

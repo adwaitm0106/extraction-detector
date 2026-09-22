@@ -29,7 +29,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "detector"))
 
-from features import compute_features, group_by_key, load_log, windows  # noqa: E402
+from features import compute_features, group_by_key, load_log, windows_with_context  # noqa: E402
 from score import MIN_FLAGS, Z_FLAG  # noqa: E402
 
 LOGS = os.path.join(ROOT, "data", "logs")
@@ -80,8 +80,8 @@ def separation_chart(plt):
     rng = random.Random(0)
     values = {g: {f: [] for f, _ in PANELS} for g, _ in GROUPS}
     for key, rows in group_by_key(load_log(EVAL_LOG)).items():
-        for w in windows(rows, cal["window"], cal["stride"]):
-            feats = compute_features(w, rng)
+        for w, wide in windows_with_context(rows, cal["window"], cal["stride"]):
+            feats = compute_features(w, rng, wide=wide)
             for f, _ in PANELS:
                 values[group_of(key)][f].append(feats[f])
 

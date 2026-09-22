@@ -2,8 +2,9 @@
 
 Rescores a labelled log with signals removed and reports how many attackers are
 still caught and how many customers are wrongly flagged. Nothing is refitted:
-the baseline, the 3.5 cutoff and the two-signal rule are exactly what score.py
-uses, so a change in the result is caused only by the signals taken away.
+the baseline, the 3.5 cutoff, the two-signal rule and the solo cutoff are exactly
+what score.py uses, so a change in the result is caused only by the signals
+taken away.
 
     python eval/ablate_signals.py \\
         --log data/logs/real_eval.jsonl --thresholds data/logs/real_thresholds.json \\
@@ -11,10 +12,10 @@ uses, so a change in the result is caused only by the signals taken away.
 
 Configurations tried:
     all signals               the detector as shipped
-    drop each signal          leave-one-out, ten runs
+    drop each signal          leave-one-out, one run per signal
     drop confidence signals   conf_p10 and low_conf_rate together, the two that
                               read the model's own confidence
-    content only              the six signals that read only the query text
+    content only              the seven signals that read only the query text
     timing and labels only    iat_burstiness and label_balance
 
 The confidence signals are the interesting ones. They depend on how sure the
@@ -34,31 +35,40 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "detector"))
 
-from features import FEATURE_NAMES, compute_features, group_by_key, load_log, windows  # noqa: E402
-from score import MIN_FLAGS, Z_FLAG  # noqa: E402
+from features import (  # noqa: E402
+    FEATURE_NAMES,
+    compute_features,
+    group_by_key,
+    load_log,
+    windows_with_context,
+)
+from score import MIN_FLAGS, SOLO_SIGNALS, Z_FLAG, Z_SOLO  # noqa: E402
 
 CONFIDENCE = ("conf_p10", "low_conf_rate")
 CONTENT = ("exact_dup_rate", "near_dup_rate", "herdan_c", "token_entropy_norm",
-           "len_cv", "template_share")
+           "len_cv", "template_share", "edit_neighbour_rate")
 TIMING_LABELS = ("iat_burstiness", "label_balance")
 
 
 def window_z(rows, baseline, window, stride, rng):
     """Per-window z-scores for every signal, computed once and reused."""
     out = []
-    for w in windows(rows, window, stride):
-        feats = compute_features(w, rng)
+    for w, wide in windows_with_context(rows, window, stride):
+        feats = compute_features(w, rng, wide=wide)
         out.append({f: abs(feats[f] - baseline[f]["centre"]) / baseline[f]["scale"]
                     for f in FEATURE_NAMES})
     return out
 
 
 def verdict(zs_per_window, keep):
-    """score.py's rule restricted to `keep`: worst window wins, two flags to call it."""
-    best = 0
+    """score.py's rule restricted to `keep`: worst window wins, two flags to call it,
+    or one eligible signal past the stricter solo cutoff."""
     for zs in zs_per_window:
-        best = max(best, sum(zs[f] >= Z_FLAG for f in keep))
-    return best >= MIN_FLAGS
+        flags = sum(zs[f] >= Z_FLAG for f in keep)
+        solo = any(zs[f] >= Z_SOLO for f in SOLO_SIGNALS if f in keep)
+        if flags >= MIN_FLAGS or solo:
+            return True
+    return False
 
 
 def main():

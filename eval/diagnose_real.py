@@ -20,7 +20,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "detector"))
 
-from features import FEATURE_NAMES, compute_features, group_by_key, load_log, windows  # noqa: E402
+from features import (  # noqa: E402
+    FEATURE_NAMES,
+    compute_features,
+    group_by_key,
+    load_log,
+    windows_with_context,
+)
 from score import MIN_FLAGS, Z_FLAG, score_client  # noqa: E402
 
 LOGS = os.path.join(ROOT, "data", "logs")
@@ -53,8 +59,8 @@ def main():
 
     vals = {g: {f: [] for f in FEATURE_NAMES} for g in GROUPS}
     for key, rows in by_key.items():
-        for w in windows(rows, cal["window"], cal["stride"]):
-            feats = compute_features(w, rng)
+        for w, wide in windows_with_context(rows, cal["window"], cal["stride"]):
+            feats = compute_features(w, rng, wide=wide)
             for f in FEATURE_NAMES:
                 vals[group_of(key)][f].append(feats[f])
 

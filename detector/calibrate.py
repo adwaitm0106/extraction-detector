@@ -48,7 +48,7 @@ from features import (  # noqa: E402
     compute_features,
     group_by_key,
     load_log,
-    windows,
+    windows_with_context,
 )
 
 # Scale factor making MAD a consistent estimator of sigma for normal data.
@@ -96,8 +96,8 @@ def collect_samples(paths, window, stride, seed=0):
     for path in paths:
         for key, rows in group_by_key(load_log(path)).items():
             keys.add(key)
-            for w in windows(rows, window, stride):
-                samples.append(compute_features(w, rng))
+            for w, wide in windows_with_context(rows, window, stride):
+                samples.append(compute_features(w, rng, wide=wide))
     return samples, keys
 
 

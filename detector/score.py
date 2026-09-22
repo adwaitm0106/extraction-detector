@@ -22,6 +22,23 @@ Both constants below are fixed a priori, not tuned against results:
                     pattern. Requiring two keeps single-feature noise from
                     producing false positives.
 
+One exception, added after the first red-team run (see README). The signal
+edit_neighbour_rate detects the thing boundary probing cannot avoid doing,
+and it was firing in every round an attacker got through, but alone, so the
+two-signal rule discarded it. It may therefore flag a client by itself at
+a stricter cutoff:
+
+    Z_SOLO = 5.0    two coincident 3.5-sigma signals among 11 have a
+                    false-alarm rate of about 1.2e-5 per window; one signal
+                    matches that at |z| of about 4.9. Derived from the
+                    existing rule, not from any result.
+
+Only that signal is eligible. Noisy ones (confidence, timing, label balance)
+have reached z of 4.3 to 17 on honest customers, so letting them flag alone
+would flag customers. This one was exactly 0 on every real customer window
+measured. The open risk is a customer who really does resubmit edited copies
+of their own queries.
+
 Usage:
     python detector/score.py --log data/logs/requests.jsonl \\
         --thresholds thresholds.json
@@ -42,11 +59,13 @@ from features import (  # noqa: E402
     group_by_key,
     load_log,
     parse_row,
-    windows,
+    windows_with_context,
 )
 
 Z_FLAG = 3.5
 MIN_FLAGS = 2
+Z_SOLO = 5.0
+SOLO_SIGNALS = ("edit_neighbour_rate",)
 
 # One plain sentence per signal, printed under each alert. An operator deciding
 # whether to cut off a paying customer should not need to know what Herdan's C
@@ -62,6 +81,7 @@ EXPLAIN = {
     "conf_p10": "the model's least-confident answers are far outside normal",
     "iat_burstiness": "request timing does not look human",
     "label_balance": "labels split unusually evenly, like systematic coverage",
+    "edit_neighbour_rate": "keeps sending slightly edited copies of its own earlier queries, as boundary probing does",
 }
 
 
@@ -72,10 +92,13 @@ def score_window(feats, baseline):
         b = baseline[name]
         zs[name] = abs(feats[name] - b["centre"]) / b["scale"]
     flagged = [n for n, z in zs.items() if z >= Z_FLAG]
+    solo = [n for n in SOLO_SIGNALS if zs[n] >= Z_SOLO]
     return {
         "z": zs,
         "flags": flagged,
         "n_flags": len(flagged),
+        "solo": solo,
+        "attack": len(flagged) >= MIN_FLAGS or bool(solo),
         "mean_z": sum(zs.values()) / len(zs),
         "max_z": max(zs.values()),
     }
@@ -89,15 +112,15 @@ def score_client(rows, baseline, window, stride, rng):
     burst should not be able to dilute that burst into the mean.
     """
     results = [
-        score_window(compute_features(w, rng), baseline)
-        for w in windows(rows, window, stride)
+        score_window(compute_features(w, rng, wide=wide), baseline)
+        for w, wide in windows_with_context(rows, window, stride)
     ]
     if not results:
         return None
-    worst = max(results, key=lambda r: (r["n_flags"], r["mean_z"]))
+    worst = max(results, key=lambda r: (r["attack"], r["n_flags"], r["mean_z"]))
     worst["n_windows"] = len(results)
     worst["n_requests"] = len(rows)
-    worst["verdict"] = "ATTACK" if worst["n_flags"] >= MIN_FLAGS else "benign"
+    worst["verdict"] = "ATTACK" if worst["attack"] else "benign"
     return worst
 
 
@@ -107,10 +130,11 @@ def alert_line(key, r):
     top = sorted(r["flags"], key=lambda n: -r["z"][n])
     signals = ", ".join("%s(%.1f)" % (n, r["z"][n]) for n in top)
     why = "; ".join(EXPLAIN.get(n, n) for n in top)
-    return ("[ALERT %s] EXTRACTION SUSPECTED  api_key=%s  flags=%d/%d  "
+    note = "  (one strong signal)" if r["n_flags"] < MIN_FLAGS else ""
+    return ("[ALERT %s] EXTRACTION SUSPECTED  api_key=%s  flags=%d/%d%s  "
             "requests=%d  signals: %s\n  why: %s"
             % (time.strftime("%H:%M:%S"), key, r["n_flags"], len(FEATURE_NAMES),
-               r["n_requests"], signals, why))
+               note, r["n_requests"], signals, why))
 
 
 # --- Enforcement. Flagged keys are written to a small JSON file that the API

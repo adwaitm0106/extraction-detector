@@ -5,8 +5,21 @@ import random
 
 import pytest
 from calibrate import MIN_SCALE, fit
-from features import FEATURE_NAMES, PROPORTION_FEATURES, compute_features, windows
-from score import EXPLAIN, MIN_FLAGS, score_client, write_blocklist
+from features import (
+    FEATURE_NAMES,
+    PROPORTION_FEATURES,
+    compute_features,
+    windows_with_context,
+)
+from score import (
+    EXPLAIN,
+    MIN_FLAGS,
+    SOLO_SIGNALS,
+    Z_SOLO,
+    score_client,
+    score_window,
+    write_blocklist,
+)
 
 WINDOW, STRIDE = 30, 15
 WORDS = ("alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu nu xi "
@@ -36,9 +49,9 @@ def prober(key="prober", n=60):
 @pytest.fixture(scope="module")
 def baseline():
     rng = random.Random(7)
-    samples = [compute_features(w, rng)
+    samples = [compute_features(w, rng, wide=wide)
                for c in range(20)
-               for w in windows(customer(random.Random(100 + c)), WINDOW, STRIDE)]
+               for w, wide in windows_with_context(customer(random.Random(100 + c)), WINDOW, STRIDE)]
     return fit(samples, WINDOW)
 
 
@@ -85,3 +98,48 @@ def test_blocklist_holds_only_attackers_and_keeps_block_time(tmp_path, baseline)
     write_blocklist(str(path), verdicts)
     again = json.loads(path.read_text(encoding="utf-8"))["blocked"]
     assert again["prober"]["since"] == first["prober"]["since"]
+
+
+def centred(baseline, **overrides):
+    """A window whose every signal sits exactly at the baseline centre, except those given."""
+    feats = {f: baseline[f]["centre"] for f in FEATURE_NAMES}
+    feats.update(overrides)
+    return feats
+
+
+def test_the_edit_neighbour_signal_can_flag_a_window_on_its_own(baseline):
+    r = score_window(centred(baseline, edit_neighbour_rate=0.6), baseline)
+    assert r["flags"] == ["edit_neighbour_rate"]
+    assert r["n_flags"] < MIN_FLAGS
+    assert r["attack"] is True
+
+
+def test_a_weaker_edit_neighbour_deviation_is_not_enough_alone(baseline):
+    """Past the ordinary cutoff but short of the solo one, it needs a second signal."""
+    scale = baseline["edit_neighbour_rate"]["scale"]
+    centre = baseline["edit_neighbour_rate"]["centre"]
+    r = score_window(centred(baseline, edit_neighbour_rate=centre + 4.0 * scale), baseline)
+    assert r["flags"] == ["edit_neighbour_rate"] and r["attack"] is False
+    r2 = score_window(centred(baseline, edit_neighbour_rate=centre + 4.0 * scale,
+                              herdan_c=baseline["herdan_c"]["centre"]
+                              + 4.0 * baseline["herdan_c"]["scale"]), baseline)
+    assert r2["attack"] is True
+
+
+def test_one_extreme_ordinary_signal_is_still_not_enough(baseline):
+    for name in ("label_balance", "conf_p10", "iat_burstiness", "near_dup_rate"):
+        r = score_window(centred(baseline, **{name: baseline[name]["centre"]
+                                              + 30 * baseline[name]["scale"]}), baseline)
+        assert r["flags"] == [name] and r["attack"] is False, name
+
+
+def test_only_the_edit_neighbour_signal_may_flag_alone():
+    assert SOLO_SIGNALS == ("edit_neighbour_rate",)
+    assert Z_SOLO == 5.0
+
+
+def test_a_client_verdict_uses_the_solo_rule(baseline):
+    """End to end: score_client reports ATTACK when a window is attacked on one signal."""
+    rows = prober()
+    r = score_client(rows, baseline, WINDOW, STRIDE, random.Random(0))
+    assert r["verdict"] == "ATTACK"

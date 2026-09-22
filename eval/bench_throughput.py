@@ -40,7 +40,14 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "detector"))
 
 from calibrate import fit  # noqa: E402
-from features import compute_features, group_by_key, load_log, windows  # noqa: E402
+from features import (  # noqa: E402
+    WIDE_EXTRA,
+    compute_features,
+    group_by_key,
+    load_log,
+    windows,
+    windows_with_context,
+)
 from score import LogTail, scan, score_client  # noqa: E402
 
 WINDOW, STRIDE = 30, 15
@@ -88,9 +95,9 @@ def bench_detector(sizes):
             t_group = time.perf_counter() - t0
 
             # Baseline fitted on the first 20 clients, as calibrate.py would.
-            samples = [compute_features(w, rng)
+            samples = [compute_features(w, rng, wide=wide)
                        for k in sorted(by_key)[:20]
-                       for w in windows(by_key[k], WINDOW, STRIDE)]
+                       for w, wide in windows_with_context(by_key[k], WINDOW, STRIDE)]
             baseline = fit(samples, WINDOW)
 
             t0 = time.perf_counter()
@@ -126,8 +133,8 @@ def bench_watch(size=100000):
         n, clients = make_log(path, size)
         rows = load_log(path)
         by_key = group_by_key(rows)
-        samples = [compute_features(w, rng) for k in sorted(by_key)[:20]
-                   for w in windows(by_key[k], WINDOW, STRIDE)]
+        samples = [compute_features(w, rng, wide=wide) for k in sorted(by_key)[:20]
+                   for w, wide in windows_with_context(by_key[k], WINDOW, STRIDE)]
         baseline = fit(samples, WINDOW)
 
         t0 = time.perf_counter()
@@ -172,10 +179,11 @@ def bench_one_window(repeats=2000):
     vocab = ["w%d" % i for i in range(3000)]
     window = [{"ts": float(i), "api_key": "k",
                "input": " ".join(rng.choice(vocab) for _ in range(rng.randint(4, 15))),
-               "predicted_label": "POSITIVE", "confidence": 0.95} for i in range(WINDOW)]
+               "predicted_label": "POSITIVE", "confidence": 0.95}
+              for i in range(WINDOW + WIDE_EXTRA)]
     t0 = time.perf_counter()
     for _ in range(repeats):
-        compute_features(window, rng)
+        compute_features(window[-WINDOW:], rng, wide=window)
     return (time.perf_counter() - t0) / repeats * 1e3
 
 

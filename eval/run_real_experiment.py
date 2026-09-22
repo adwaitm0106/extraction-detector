@@ -20,6 +20,11 @@ What it does:
   4. Score every client, then write eval/results/real_data.json and
      eval/results/real_data.md.
 
+To score again without generating traffic (after changing the detector), pass
+--rescore: it refits the baseline from the saved calibration log and scores
+the saved evaluation log. No API is needed. Pass the same --tag as the run
+that produced the logs.
+
 To evaluate a different victim model, start the API with MODEL_NAME set,
 point --base-url at it, and pass --tag so the outputs do not overwrite the
 first model's. --log must be the LOG_PATH that server writes to.
@@ -120,31 +125,39 @@ def main():
     p.add_argument("--n", type=int, default=60, help="requests per client")
     p.add_argument("--tag", default="", help="suffix for outputs, e.g. roberta")
     p.add_argument("--log", default=LOG, help="request log the API writes to")
+    p.add_argument("--rescore", action="store_true",
+                   help="refit and rescore the saved logs; no API, no new traffic")
     args = p.parse_args()
     retag(args.tag, args.log)
 
-    try:
-        with urllib.request.urlopen(args.base_url + "/health", timeout=5) as r:
-            if not json.loads(r.read()).get("model_loaded"):
-                raise SystemExit("API is up but the model has not loaded yet.")
-    except OSError as e:
-        raise SystemExit("Cannot reach the API at %s: %s" % (args.base_url, e)) from e
-
     os.makedirs(LOGS, exist_ok=True)
     os.makedirs(RESULTS, exist_ok=True)
-    if os.path.exists(LOG):
-        os.replace(LOG, os.path.join(LOGS, "requests.stale.jsonl"))
-        print("moved an existing requests.jsonl aside to requests.stale.jsonl")
-    if os.path.exists(BLOCKLIST):
-        os.replace(BLOCKLIST, BLOCKLIST + ".stale")  # a stale block would 429 our attackers
-    n = args.n
+    if args.rescore:
+        for path in (CALIB_LOG, EVAL_LOG):
+            if not os.path.exists(path):
+                raise SystemExit("--rescore needs %s from an earlier run" % path)
+        n = args.n
+    else:
+        try:
+            with urllib.request.urlopen(args.base_url + "/health", timeout=5) as r:
+                if not json.loads(r.read()).get("model_loaded"):
+                    raise SystemExit("API is up but the model has not loaded yet.")
+        except OSError as e:
+            raise SystemExit("Cannot reach the API at %s: %s" % (args.base_url, e)) from e
+        if os.path.exists(LOG):
+            os.replace(LOG, os.path.join(LOGS, "requests.stale.jsonl"))
+            print("moved an existing requests.jsonl aside to requests.stale.jsonl")
+        if os.path.exists(BLOCKLIST):
+            os.replace(BLOCKLIST, BLOCKLIST + ".stale")  # a stale block would 429 our attackers
+        n = args.n
 
     # --- 1. calibration: benign only, calibration pool only ---
     print("\n[1/3] calibration")
-    run_wave("8 real customers", [
-        benign("cal-%s-%d" % (s, i), s, "calib", 1000 + 10 * j + i, n)
-        for j, s in enumerate(SEEN) for i in range(2)])
-    rotate(CALIB_LOG)
+    if not args.rescore:
+        run_wave("8 real customers", [
+            benign("cal-%s-%d" % (s, i), s, "calib", 1000 + 10 * j + i, n)
+            for j, s in enumerate(SEEN) for i in range(2)])
+        rotate(CALIB_LOG)
     out = subprocess.run([PY, os.path.join(ROOT, "detector", "calibrate.py"),
                           "--log", CALIB_LOG, "--out", THRESHOLDS],
                          cwd=ROOT, capture_output=True, text=True)
@@ -153,19 +166,20 @@ def main():
     print("  " + out.stdout.splitlines()[0])
 
     # --- 2. evaluation: new customers, then attackers, in separate waves ---
-    print("\n[2/3] evaluation traffic")
-    run_wave("10 new customers", [
-        benign("cust-%s-%d" % (s, i), s, "eval", 2000 + 10 * j + i, n)
-        for j, s in enumerate(SEEN + UNSEEN) for i in range(2)])
-    run_wave("attackers (10 keys)", [
-        attacker("atk-probe-twitter", "real-probe", n, 3001, "twitter"),
-        attacker("atk-probe-yelp", "real-probe", n, 3002, "yelp"),
-        attacker("atk-harvest-yelp", "real-harvest", n, 3003, "yelp"),
-        attacker("atk-harvest-mixed", "real-harvest", n, 3004, "mixed"),
-        attacker("atk-harvest-split", "real-harvest", 150, 3005, "amazon", split=5),
-        attacker("atk-template-boundary", "boundary", n, 3006),
-    ])
-    rotate(EVAL_LOG)
+    print("\n[2/3] evaluation traffic" + (" (saved log, not regenerated)" if args.rescore else ""))
+    if not args.rescore:
+        run_wave("10 new customers", [
+            benign("cust-%s-%d" % (s, i), s, "eval", 2000 + 10 * j + i, n)
+            for j, s in enumerate(SEEN + UNSEEN) for i in range(2)])
+        run_wave("attackers (10 keys)", [
+            attacker("atk-probe-twitter", "real-probe", n, 3001, "twitter"),
+            attacker("atk-probe-yelp", "real-probe", n, 3002, "yelp"),
+            attacker("atk-harvest-yelp", "real-harvest", n, 3003, "yelp"),
+            attacker("atk-harvest-mixed", "real-harvest", n, 3004, "mixed"),
+            attacker("atk-harvest-split", "real-harvest", 150, 3005, "amazon", split=5),
+            attacker("atk-template-boundary", "boundary", n, 3006),
+        ])
+        rotate(EVAL_LOG)
 
     # --- 3. scoring ---
     print("\n[3/3] scoring")

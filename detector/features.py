@@ -14,6 +14,7 @@ sending 3000 land on the same scale.
 import json
 import math
 from collections import Counter
+from difflib import SequenceMatcher
 
 # Two queries count as near-duplicates above this token-overlap (Jaccard).
 # Fixed a priori, not tuned: 0.6 means "most words shared".
@@ -22,6 +23,21 @@ NEAR_DUP_JACCARD = 0.6
 # Cap on pairwise comparisons. Near-duplicate detection is O(n^2); above this
 # many requests a random sample gives the same ratio far more cheaply.
 MAX_PAIRWISE = 400
+
+# edit_neighbour_rate. Boundary probing has to send a query and a slightly
+# edited copy of it, so it leaves pairs of DIFFERENT queries that are close
+# in word order, not just in word overlap. Two queries are edit neighbours
+# when their word sequences are at least this similar (difflib ratio, where
+# 1.0 is identical). Chosen before any result was seen: 0.6 means about
+# three of every five words line up in order, which is what a handful of
+# edits to one sentence leaves behind and what two unrelated sentences do not.
+EDIT_NEIGHBOUR_RATIO = 0.6
+
+# The signal looks over this many requests: the 30 being scored plus up to
+# this many before them. A prober can keep a query and its edited copy more
+# than 30 requests apart so they never share a window, and that is exactly
+# the evasion this is meant to close (see eval/adaptive_attacker.py).
+WIDE_EXTRA = 30
 
 # Features that are proportions of a window. A proportion measured over W
 # requests moves in steps of 1/W, so deviations smaller than one step are
@@ -33,6 +49,7 @@ PROPORTION_FEATURES = frozenset({
     "near_dup_rate",
     "template_share",
     "low_conf_rate",
+    "edit_neighbour_rate",
     # label_balance is |p - 0.5| for a proportion p, so it inherits the same
     # 1/W resolution. Without it here, a client with a perfectly even label
     # split scored an 18-sigma deviation purely because the benign MAD was
@@ -51,6 +68,7 @@ FEATURE_NAMES = (
     "conf_p10",
     "iat_burstiness",
     "label_balance",
+    "edit_neighbour_rate",
 )
 
 
@@ -184,8 +202,65 @@ def _label_balance(labels):
     return abs(top / len(labels) - 0.5)
 
 
-def compute_features(rows, rng=None):
-    """Feature vector for one client's requests. Rows are parsed log lines."""
+# Cap on the wide-context list edit_neighbour_rate compares pairwise. Measured:
+# on synthetic benchmark traffic (a small reused vocabulary, so many pairs pass
+# the word-overlap prefilter below and reach the expensive comparison), scoring
+# 500k requests went from 21.6s to 175s after this signal was added. Real text
+# has a far richer vocabulary and did not show this; the cap exists so a small,
+# repetitive vocabulary cannot degrade the detector regardless.
+MAX_NEIGHBOUR_CONTEXT = 45
+
+
+def _edit_neighbour_rate(texts, rng=None):
+    """Share of queries that have a different-but-close query among the others.
+
+    Identical queries do not count: exact repeats are what customers re-asking
+    produce and exact_dup_rate already covers them. This counts a query and an
+    EDITED copy of it, which is what probing the decision boundary produces.
+
+    Every pair is compared, so it still works when an attacker reuses a few
+    seeds heavily. Two prefilters skip almost every unrelated pair before the
+    slower sequence comparison runs: a length-ratio bound, and a word-Jaccard
+    bound that is mathematically tighter than it looks -- two sequences whose
+    shared-word fraction is below the target ratio cannot reach that ratio on
+    SequenceMatcher either, since matched blocks can only be built from shared
+    words.
+    """
+    n = len(texts)
+    if n < 2:
+        return 0.0
+    if n > MAX_NEIGHBOUR_CONTEXT and rng is not None:
+        texts = rng.sample(texts, MAX_NEIGHBOUR_CONTEXT)
+        n = MAX_NEIGHBOUR_CONTEXT
+    words = [t.lower().split() for t in texts]
+    norm = [" ".join(w) for w in words]
+    sets = [frozenset(w) for w in words]
+    lens = [len(w) for w in words]
+    linked = set()
+    for i in range(n):
+        for j in range(i + 1, n):
+            if i in linked and j in linked:
+                continue
+            total = lens[i] + lens[j]
+            if not total or norm[i] == norm[j]:
+                continue
+            if 2 * min(lens[i], lens[j]) < EDIT_NEIGHBOUR_RATIO * total:
+                continue  # too different in length to reach the ratio
+            if 2 * len(sets[i] & sets[j]) < EDIT_NEIGHBOUR_RATIO * total:
+                continue  # too few shared words to reach the ratio
+            if SequenceMatcher(None, words[i], words[j], autojunk=False).ratio() \
+                    >= EDIT_NEIGHBOUR_RATIO:
+                linked.add(i)
+                linked.add(j)
+    return len(linked) / n
+
+
+def compute_features(rows, rng=None, wide=None):
+    """Feature vector for one client's requests. Rows are parsed log lines.
+
+    Ten signals read `rows`, the window being scored. edit_neighbour_rate reads
+    `wide` (the window plus earlier requests) when given, and `rows` otherwise.
+    """
     texts = [r["input"] for r in rows]
     confs = sorted(float(r["confidence"]) for r in rows)
     lengths = [len(t) for t in texts]
@@ -204,6 +279,8 @@ def compute_features(rows, rng=None):
         "conf_p10": p10,
         "iat_burstiness": _iat_burstiness([float(r["ts"]) for r in rows]),
         "label_balance": _label_balance([r["predicted_label"] for r in rows]),
+        "edit_neighbour_rate": _edit_neighbour_rate(
+            [r["input"] for r in (wide if wide is not None else rows)], rng),
     }
 
 
@@ -259,3 +336,17 @@ def windows(rows, size, stride):
     if len(rows) < size:
         return []
     return [rows[i:i + size] for i in range(0, len(rows) - size + 1, stride)]
+
+
+def windows_with_context(rows, size, stride, extra=WIDE_EXTRA):
+    """The same windows as windows(), each paired with a wider span of history.
+
+    Returns (window, wide) pairs. `wide` is the window plus up to `extra`
+    requests before it, so a client's first windows simply have less history.
+    Calibration and scoring both build them this way, which keeps the
+    baseline and the scores comparable.
+    """
+    if len(rows) < size:
+        return []
+    return [(rows[i:i + size], rows[max(0, i - extra):i + size])
+            for i in range(0, len(rows) - size + 1, stride)]
