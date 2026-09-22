@@ -53,10 +53,11 @@ flag anyone on a single signal alone.
   victim for a very different model (three labels, median confidence 0.84
   instead of 0.998) gave the identical result, and removing the confidence
   signals entirely loses no attackers. Two content signals do the work.
-- **An attacker who knows how it works gets past it.** A boundary prober using
-  the standard countermeasures from the first round, with no feedback at all,
-  was never flagged in 3 of 3 trials. Hiding the detector's reasons doesn't
-  change that.
+- **Red-teaming found a real gap, and fixing it found another one.** An attacker
+  using the standard countermeasures, no feedback needed, was never flagged in
+  3 of 3 trials. A new signal built to close that gap fixed it: the same attacker
+  plus two more built to test the fix are now caught 0 of 5, but one that edits
+  most of a seed's words rather than a few still evades it, 5 of 5.
 - **It's fast enough not to matter.** About 20,000 requests a second, over a
   thousand times faster than the model it protects. Benchmarking it found and
   fixed a bug that made live alerting fall behind as the log grew.
@@ -262,7 +263,7 @@ during an experiment.
 ### Automated tests
 
 There's a suite of 62 tests that runs on every push through GitHub Actions, on
-Python 3.11 and 3.12. It covers the ten signals, calibration and the flag rule,
+Python 3.11 and 3.12. It covers the eleven signals, calibration and the flag rule,
 the blocklist, the live log reader, the corpus pools, the defences, and the
 whole API: auth, validation, logging, blocking, budgets and response modes.
 
@@ -597,29 +598,41 @@ Putting the whole project together:
 
 Two questions that could have quietly undermined everything above. Is the
 detector only working because this particular model is very sure of itself? And
-which of the ten signals is actually doing the catching?
+which of the signals is actually doing the catching? (Numbers below are from
+before the fix described in Red-teaming the detector added an eleventh signal;
+rerunning after the fix reproduces them, because the static attackers used here
+were already caught by the first two and never needed the eleventh.)
 
 **Which signals.** Each signal was removed in turn and the same clients were
-rescored, with the baseline, the cutoff and the two-signal rule left exactly as
-they were.
+rescored, with the baseline, the cutoff and the flag rule left exactly as they
+were.
 
 | Signals used | Real text: attackers caught | Synthetic: attackers caught |
 |---|---|---|
-| all ten | 3 of 10 | 10 of 10 |
-| without `near_dup_rate` | 1 of 10 | 8 of 10 |
-| without `herdan_c` | 1 of 10 | 8 of 10 |
+| all eleven | 3 of 10 | 10 of 10 |
+| without `near_dup_rate` | 3 of 10 | 8 of 10 |
+| without `herdan_c` | 3 of 10 | 8 of 10 |
+| without `edit_neighbour_rate` | 3 of 10 | not run |
 | without the two confidence signals | 3 of 10 | 10 of 10 |
-| the six signals that only read the query text | 3 of 10 | 10 of 10 |
+| the seven signals that only read the query text | 3 of 10 | 10 of 10 |
 | timing and label balance alone | 0 of 10 | 0 of 10 |
 | the two confidence signals alone | 0 of 10 | 1 of 10 |
 
-`near_dup_rate` and `herdan_c` do the work. The confidence signals do not. On
-the synthetic set, removing them also removed the one false alarm and lost no
-attackers, so there they were a net negative. Earlier versions of this README
-said the confidence signal was carrying the detector. That was wrong. It looked
-that way because its deviations were enormous (z-scores in the dozens), but a
-big deviation is not the same as being needed when other signals already supply
-the two flags.
+Removing `edit_neighbour_rate` makes no difference here, which sounds odd next
+to the red-team section below and is not a contradiction: these three static
+attackers already trip `near_dup_rate` and `herdan_c` on their own, at the
+original two-signal cutoff. `edit_neighbour_rate` earns its place only against
+an attacker that specifically avoids those two, which is what the adaptive
+attacker does. A static ablation cannot see that; only playing the game can.
+
+On the signals present from the start, `near_dup_rate` and `herdan_c` do the
+early work and the confidence signals do not. On the synthetic set, removing
+the confidence signals also removed the one false alarm and lost no attackers,
+so there they were a net negative. Earlier versions of this README said the
+confidence signal was carrying the detector. That was wrong. It looked that way
+because its deviations were enormous (z-scores in the dozens), but a big
+deviation is not the same as being needed when other signals already supply the
+two flags.
 
 **A different victim.** The whole real-text experiment was rerun against
 `cardiffnlp/twitter-roberta-base-sentiment-latest`, a different architecture
@@ -639,8 +652,10 @@ The two models behave very differently. RoBERTa is far less sure of itself, and
 the learned baseline moved to match. The detection result did not change at all,
 and the same three attackers were caught either way. The one place the models
 differed: `low_conf_rate` fired on three RoBERTa customers, each time alone, so
-none was flagged. A less certain model makes the confidence signals noisier for
-honest users, which is one more reason not to lean on them.
+none was flagged (this was before the solo rule existed; that signal is not
+eligible to flag alone, `edit_neighbour_rate` is the only one that is).
+A less certain model makes the confidence signals noisier for honest users,
+which is one more reason not to lean on them.
 
 Run it yourself:
 
@@ -661,51 +676,83 @@ live API under a fresh key and gets scored by the real detector against the
 real-customer baseline. If it is flagged it changes tactics and goes again.
 Success is three unflagged rounds in a row with the same tactics.
 
-Three attackers, three trials each:
+**First pass, three attackers, three trials each, against the original ten
+signals:**
 
-| Attacker | Fully evaded | First unflagged round |
-|---|---|---|
-| **Informed:** sees which signals fired and reacts to each | 3 of 3 | round 3 |
-| **Blind:** sees only "flagged or not", changes one tactic at random | 0 of 3 | none in 12 rounds |
-| **Prior knowledge:** no feedback, starts with the standard countermeasures | 3 of 3 | **round 1** |
+| Attacker | Fully evaded |
+|---|---|
+| Informed: sees which signals fired and reacts to each | 3 of 3 |
+| Blind: sees only "flagged or not", changes one tactic at random | 0 of 3 |
+| Prior knowledge: no feedback, starts with the standard countermeasures | 3 of 3 |
 
-![Signals fired and boundary information gained, per round, for the three attackers](eval/figures/adaptive_attacker.png)
+The third attacker, which gets no feedback and simply uses the countermeasures
+described in this README, was never flagged in any round: at most one signal
+fired, and the rule needs two. Keeping the detector's reasons secret did not
+decide the outcome, so hiding the 429 response's signal list (a real leak I
+found and fixed along the way; it now returns a generic message, and a test
+checks that no reason survives) closed a gap but was never the fix that
+mattered.
 
-The informed attacker was caught twice, then switched to more seeds, more edits
-per probe, no repeated queries, a much bigger substitution vocabulary and
-human-looking timing. That was enough. The blind attacker failed, but only
-because it picks tactics at random. The third attacker shows what that means: one
-that never sees any feedback and simply uses those same countermeasures from the
-start was **never flagged in any round of any trial**. At most one signal fired,
-and it takes two.
+**The actual gap.** Every one of these attackers won the same way: enough edits
+per probe, or enough seeds, that no two of its own queries shared a 30-request
+window closely enough to trip `near_dup_rate` or `herdan_c`. That is a structural
+hole, not a tuning problem. Boundary probing has to send a query and an edited
+copy of it; a detector that only asks "is this window unusual" can be trained
+around by spreading the copies out. So a new signal, `edit_neighbour_rate`,
+checks each window against a wider span of the same client's history (30 extra
+requests) for queries that are DIFFERENT from each other but close in wording,
+which is what an edited copy is and an unrelated query never is. On every real
+customer window measured, across both victim models, it was exactly zero.
 
-So keeping the detector's reasons secret does not decide anything. The ten
-signals are described in this README, and an attacker who reads it knows what to
-avoid. Evasion also did not cost the attacker anything by the measure used here.
-Label flips (edited queries whose answer differs from their own seed's, which is
-real information about the decision boundary) averaged 0.3 per round for the
-naive attacker and 2 to 3 for the evaders, because more edits per probe finds
-more flips.
+Adding it and rerunning changed nothing, because the two-signal rule discarded
+it: it fired alone almost every round an attacker got through, and one signal
+was never enough. Fixed with one exception, chosen before rerunning anything:
+this one signal may flag a client by itself, at a stricter cutoff (z of 5.0
+instead of 3.5, derived from the existing rule's own false-alarm rate, not
+picked to fit a result). No other signal gets that exception, because the noisy
+ones already reach z of 4 to 17 on honest customers.
 
-One real bug came out of this. The API's 429 response used to include the list of
-signals that got a key blocked, which is exactly the feedback the informed
-attacker needed. It stayed in `blocked.json` for the operator but should never
-have been sent to the client. It now returns a generic message, and a test checks
-that no reason leaks. That would have saved an attacker about two rounds, not
-changed the outcome.
+**Second pass, the original three attackers plus four built to test the fix,
+five trials each, held-out random seeds:**
 
-Honest limits: this is one type of attacker, three trials each, and the flip
-counts are small and noisy (0 to 6 per round). The attacker rotates to a fresh
-key every round. Timing evasion is easy here partly because the benign timing
-comes from our own generator. I have not tried any fixes. Ideas worth testing
-are keeping cutoffs secret or varying them per key, and signals that are costly
-to imitate, such as how much of the input space all customers together cover.
+| Attacker | Fully evaded |
+|---|---|
+| Informed | 0 of 5 |
+| Blind | 0 of 5 |
+| Prior knowledge (original countermeasures) | 0 of 5 |
+| Also knows the countermeasures to the eleventh signal | 0 of 5 |
+| Edits most of every seed's words, not a few | **5 of 5** |
+| Splits each probe pair across two keys | 4 of 5 (linkage still catches 5 of 5) |
+| Both: split across keys and heavy edits | **5 of 5** (linkage catches 3 of 5) |
+
+![Signals fired and probe density, per round, for all seven attackers](eval/figures/adaptive_attacker.png)
+
+The first four are now caught every time, including the one that specifically
+knew how `edit_neighbour_rate` works and tried to avoid it with a few extra
+edits. What still gets through is an attacker willing to change most of a
+seed's words rather than a few. That produces text like *"Thanks foh TSA TjA
+and sharing. It is nice not nou looking fashion D: D: guessing hours!"*, garbled
+enough that it is no longer close to its own seed by any measure used here, so
+`edit_neighbour_rate` reads zero and the attacker is indistinguishable from
+someone asking unrelated questions. Splitting the pair across two keys mostly
+failed on its own, because cross-key linkage (`detector/campaign.py`) still
+finds the shared vocabulary; combined with heavy edits it also beats linkage
+in 3 of 5 trials.
+
+So the fix closes the gap the first red-team run found, and a second, harder
+attacker opens a different one: heavy mutation degrades the probe rather than
+hiding it from a *this* detector, but the current signals have nothing to say
+about text that no longer resembles anything. What that costs the attacker
+(worse labels for the boundary it is trying to map, since the text it sends is
+barely readable) has not been measured here.
 
 ```bash
-.venv/Scripts/python.exe eval/adaptive_attacker.py --trials 3 --max-rounds 12
+.venv/Scripts/python.exe eval/run_real_experiment.py --rescore   # refit with the new signal
+.venv/Scripts/python.exe eval/adaptive_attacker.py --trials 5 --max-rounds 12
 ```
 
-Needs the DistilBERT API running. It takes a few minutes.
+Needs the DistilBERT API running for a fresh run; `--rescore` alone needs no
+API. Five attackers x five trials takes roughly forty minutes.
 
 ## How fast is it?
 
@@ -713,7 +760,9 @@ Needs the DistilBERT API running. It takes a few minutes.
 they have different limits. Measured on a 12-thread Windows laptop.
 
 **The detector** parses a log, groups it by key, builds 30-request windows,
-computes the ten signals and applies the rule. No API or model involved.
+computes the eleven signals and applies the rule. No API or model involved.
+These numbers are from before `edit_neighbour_rate` existed; the signal made
+the detector meaningfully slower, and that is its own story below.
 
 | Requests in log | Total time | Throughput |
 |---|---|---|
@@ -721,23 +770,53 @@ computes the ten signals and applies the rule. No API or model involved.
 | 100,000 | 4.9 s | 20,400 requests/s |
 | 500,000 | 21.6 s | 23,200 requests/s |
 
-Computing all ten signals for one window takes under a millisecond. That is more
-than a thousand times faster than the model it protects can answer (DistilBERT
-takes a median of 76 ms per request here, about 13 requests a second, and
-RoBERTa 332 ms, about 3 a second), so detection is never the bottleneck.
+That is more than a thousand times faster than the model it protects can answer
+(DistilBERT takes a median of 76 ms per request here, about 13 requests a
+second, and RoBERTa 332 ms, about 3 a second), so at this speed detection was
+never the bottleneck.
 
 **A bug this found.** `--watch` used to re-read and rescore the entire log every
 few seconds. That is fine at first and quietly stops working: a 100,000-request
 log took 3 to 5 seconds per cycle, at or above the default 3 second interval, and
 500,000 took over 20. It now remembers where it stopped reading, parses only new
-lines, and rescores only the clients that sent them. A cycle on a 100,000-request
-log went from 3.15 s to 42 ms, about 76 times faster. A replay of real logged
+lines, and rescores only the clients that sent them. A replay of real logged
 clients through the new watcher blocked exactly the same two attackers as the
 one-shot scorer, and nine tests cover partial lines, Windows line endings,
 rotated files and late-arriving rows. The catch is that it keeps every row in
 memory, so a very long watch uses memory in proportion to the log.
 
-**The API**, with the stub model so inference is excluded:
+**A cost the new signal added, found by rerunning this benchmark, not hidden.**
+`edit_neighbour_rate` (see Red-teaming the detector) compares pairs of queries
+in a 60-request span instead of one signal per query, and on a benchmark log
+built from a small, repetitive vocabulary, many pairs share enough words to
+reach the slower comparison. Scoring 500,000 requests went from 21.6 s to
+175 s. A cap (at most 45 candidates compared pairwise per window, subsampled
+if there are more) plus a tighter word-overlap prefilter got that back to
+107 s, about five times slower than before the signal existed, not back to
+where it started:
+
+| Requests in log | Before the signal | After adding it | After capping it |
+|---|---|---|---|
+| 10,000 | 0.32 s | 1.78 s | 0.61 s |
+| 100,000 | 4.9 s | 25.1 s | 14.7 s |
+| 500,000 | 21.6 s | 174.9 s | 115.6 s |
+
+The `--watch` cycle on a 100,000-request log correspondingly moved from 3.15 s
+(before the fix in the previous paragraph) to 42 ms (incremental reading alone,
+ten signals) to 120 ms (incremental reading, eleven signals, this cap). Still
+about 200 times faster than a full rescan, just not as fast as it was with ten.
+
+This benchmark's traffic is synthetic and unusually repetitive; real text from
+five different sources did not show the problem in testing, likely because
+natural language shares far fewer words by chance. Nobody has measured the real
+worst case, and the honest position is that this signal has a cost, it depends
+on how repetitive real traffic turns out to be, and it has not been tuned
+against a production workload. If it matters for a deployment, benchmarking
+against that deployment's own traffic shape, not this synthetic one, is the
+right next step.
+
+**The API**, with the stub model so inference is excluded (measured before the
+new signal; it lives in the detector, not the request path):
 
 | Log durability | Requests/s | p50 latency |
 |---|---|---|
@@ -895,10 +974,20 @@ on benign clients being bursty, which is as much a property of our generator
 as of real people, and it drifts if the calibration clients ran at a different
 pace from the ones being judged.
 
-**An attacker who knows the signals gets past it.** The ten signals are
-described in this README. A boundary prober using the obvious countermeasures
-was never flagged, with no feedback needed, and it still learned about the
-boundary. I haven't tested any fix.
+**An attacker willing to mutate heavily still gets past it.** The eleven signals
+are described in this README. Four attacker types built after the fix (the
+original three, plus one that also knows the eleventh signal) are now caught
+every time. One that changes most of a seed's words, not a few, is not: 5 of 5
+trials fully evaded (see Red-teaming the detector). Splitting a probe pair
+across two keys mostly fails against cross-key linkage on its own, but combined
+with heavy edits it beats linkage too in 3 of 5 trials.
+
+**The solo rule is a new risk of its own.** `edit_neighbour_rate` can flag a
+client alone now, at a stricter cutoff chosen from the existing rule's own
+false-alarm math, not from any result, and it was zero on every real customer
+window measured. But a real customer who genuinely resubmits edited versions of
+their own queries would look exactly like this signal's positive case, and that
+has not been tested because no benign traffic in this repo does that.
 
 **Automated doesn't mean malicious.** The false alarm above was a service
 account. In earlier testing, calibrating a separate baseline for service
